@@ -5,7 +5,7 @@ import net.fabricmc.api.Environment;
 import org.commonmark.node.*;
 
 @Environment(EnvType.CLIENT)
-public enum SoftNodeType {
+public enum NodeType {
 	BLOCK_QUOTE(BlockQuote.class, 1, true, 2),
 	BULLET_LIST(BulletList.class, 1, true, 4),
 	CODE(Code.class, 0, true, 2),
@@ -36,19 +36,19 @@ public enum SoftNodeType {
 	private final boolean isBlock;
 	private final int marginBottom;
 	
-	SoftNodeType(Class<? extends Node> clazz, int indent, boolean isBlock, int marginBottom) {
+	NodeType(Class<? extends Node> clazz, int indent, boolean isBlock, int marginBottom) {
 		this.clazz = clazz;
 		this.indent = indent;
 		this.isBlock = isBlock;
 		this.marginBottom = marginBottom;
 	}
 	
-	public static SoftNodeType getByClass(Class<? extends Node> clazz) {
-		for (SoftNodeType enumValue : values()) {
+	public static NodeType getByClass(Class<? extends Node> clazz) {
+		for (NodeType enumValue : values()) {
 			if (enumValue.clazz == clazz) return enumValue;
 		}
 		
-		return SoftNodeType.CUSTOM_NODE;
+		return NodeType.CUSTOM_NODE;
 	}
 	
 	public Class<? extends Node> getClazz() {

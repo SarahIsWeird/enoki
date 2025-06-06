@@ -1,7 +1,8 @@
 package blue.endless.enoki.gui;
 
-import blue.endless.enoki.markdown.SoftNode;
-import blue.endless.enoki.markdown.SoftNodeType;
+import blue.endless.enoki.markdown.DocNode;
+import blue.endless.enoki.markdown.NodeStyle;
+import blue.endless.enoki.markdown.NodeType;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -24,7 +25,7 @@ import java.util.Objects;
 
 @Environment(EnvType.CLIENT)
 public class MarkdownWidget extends ClickableWidget {
-	private SoftNode document;
+	private DocNode document;
 	private final WordWrap wordWrap;
 	private TextRenderer font;
 	
@@ -39,7 +40,7 @@ public class MarkdownWidget extends ClickableWidget {
 		this.font = Objects.requireNonNull(font);
 	}
 	
-	public void setDocument(SoftNode document) {
+	public void setDocument(DocNode document) {
 		this.document = document;
 	}
 	
@@ -50,10 +51,10 @@ public class MarkdownWidget extends ClickableWidget {
 		Deque<BlockContext> contexts = new LinkedList<>();
 		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24));
 		
-		render(document, dc, Position.of(getX(), getY()), contexts, Style.EMPTY);
+		render(document, dc, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
 	}
 	
-	private Position render(SoftNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, Style style) {
+	private Position render(DocNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, NodeStyle style) {
 		if (node.type().isBlock()) {
 			return renderBlock(node, dc, position, contexts, style);
 		}
@@ -61,7 +62,7 @@ public class MarkdownWidget extends ClickableWidget {
 		return renderInline(node, dc, position, contexts, style);
 	}
 	
-	private Position renderBlock(SoftNode node, DrawContext dc, Position nextPosition, Deque<BlockContext> contexts, Style externalStyle) {
+	private Position renderBlock(DocNode node, DrawContext dc, Position nextPosition, Deque<BlockContext> contexts, NodeStyle externalStyle) {
 		BlockContext context = contexts.peek();
 		if (context == null) return nextPosition;
 		
@@ -80,12 +81,12 @@ public class MarkdownWidget extends ClickableWidget {
 		nextPosition = Position.of(blockX, blockY);
 		
 		// FIXME: Customizable style provider that can set sizes
-		Style newStyle = switch (node.type()) {
+		NodeStyle newStyle = switch (node.type()) {
 			case HEADING -> getHeadingStyle(externalStyle, node);
 			default -> externalStyle;
 		};
 		
-		for (SoftNode child : node.children()) {
+		for (DocNode child : node.children()) {
 			nextPosition = render(child, dc, nextPosition, contexts, newStyle);
 		}
 		
@@ -102,15 +103,15 @@ public class MarkdownWidget extends ClickableWidget {
 		return Position.of(outerContext.x(), nextY);
 	}
 	
-	private static Style getHeadingStyle(Style outerStyle, SoftNode node) {
+	private static NodeStyle getHeadingStyle(NodeStyle outerStyle, DocNode node) {
 		return switch (node.value()) {
-			case "1" -> outerStyle.withBold(true).withColor(Formatting.AQUA);
-			case "2" -> outerStyle.withBold(false).withColor(Formatting.LIGHT_PURPLE);
-			default -> outerStyle.withBold(false).withColor(Formatting.BLUE);
+			case "1" -> outerStyle.withBold().withColor(Formatting.AQUA);
+			case "2" -> outerStyle.withColor(Formatting.LIGHT_PURPLE);
+			default -> outerStyle.withBold().withColor(Formatting.BLUE);
 		};
 	}
 	
-	private Position renderInline(SoftNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, Style externalStyle) {
+	private Position renderInline(DocNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, NodeStyle externalStyle) {
 		BlockContext context = contexts.peek();
 		if (context == null) return position;
 		
@@ -121,27 +122,27 @@ public class MarkdownWidget extends ClickableWidget {
 		String nodeText = node.text();
 		
 		// FIXME: Should be configurable
-		if (node.type() == SoftNodeType.LIST_ITEM) {
+		if (node.type() == NodeType.LIST_ITEM) {
 			nodeText = "\u2022 " + nodeText;
 		}
 		
 		// FIXME: Should be customizable
-		Style newStyle = switch (node.type()) {
-			case SoftNodeType.EMPHASIS -> externalStyle.withItalic(true);
-			case SoftNodeType.STRONG_EMPHASIS -> ((StrongEmphasis) node.node()).getOpeningDelimiter().startsWith("*") ? externalStyle.withBold(true) : externalStyle.withItalic(true);
-			case SoftNodeType.CUSTOM_NODE -> node.node() instanceof Strikethrough ? externalStyle.withStrikethrough(true) : externalStyle;
+		NodeStyle newStyle = switch (node.type()) {
+			case NodeType.EMPHASIS -> externalStyle.withItalic();
+			case NodeType.STRONG_EMPHASIS -> ((StrongEmphasis) node.node()).getOpeningDelimiter().startsWith("*") ? externalStyle.withBold() : externalStyle.withItalic();
+			case NodeType.CUSTOM_NODE -> node.node() instanceof Strikethrough ? externalStyle.withStrikethrough() : externalStyle;
 			default -> externalStyle;
 		};
 		
 		// FIXME: Why does the first line take the indent into account, but the remaining lines don't?
-		String firstLine = wordWrap.getFirstLine(font, lineWidth, nodeText, newStyle);
+		String firstLine = wordWrap.getFirstLine(font, lineWidth, nodeText, newStyle.asStyle());
 		String remainingText = nodeText.substring(firstLine.length());
-		List<String> remainingLines = wordWrap.wrap(font, context.width(), remainingText, newStyle);
+		List<String> remainingLines = wordWrap.wrap(font, context.width(), remainingText, newStyle.asStyle());
 		
-		OrderedText firstLineText = Text.literal(firstLine).setStyle(newStyle).asOrderedText();
-		dc.drawText(font, firstLineText, position.x(), position.y(), Colors.WHITE, newStyle.getShadowColor() != null);
+		OrderedText firstLineText = Text.literal(firstLine).setStyle(newStyle.asStyle()).asOrderedText();
+		dc.drawText(font, firstLineText, position.x(), position.y(), Colors.WHITE, newStyle.shadow());
 		
-		boolean forceLineBreak = node.type() == SoftNodeType.LIST_ITEM;
+		boolean forceLineBreak = node.type() == NodeType.LIST_ITEM;
 		
 		Position endPosition = position;
 		
@@ -156,8 +157,8 @@ public class MarkdownWidget extends ClickableWidget {
 			OrderedText lastLine = null;
 			for (int i = 0; i < remainingLines.size(); i++) {
 				String line = remainingLines.get(i);
-				lastLine = Text.literal(line).setStyle(newStyle).asOrderedText();
-				dc.drawText(font, lastLine, position.x(), position.y(), Colors.WHITE, externalStyle.getShadowColor() != null);
+				lastLine = Text.literal(line).setStyle(newStyle.asStyle()).asOrderedText();
+				dc.drawText(font, lastLine, position.x(), position.y(), Colors.WHITE, newStyle.shadow());
 				
 				if (i < remainingLines.size() - 1) {
 					position = Position.of(position.x(), position.y() + font.fontHeight);
@@ -170,7 +171,7 @@ public class MarkdownWidget extends ClickableWidget {
 						Position.of(position.x() + font.getWidth(lastLine), position.y());
 		}
 		
-		for (SoftNode child : node.children()) {
+		for (DocNode child : node.children()) {
 			endPosition = render(child, dc, endPosition, contexts, newStyle);
 		}
 		

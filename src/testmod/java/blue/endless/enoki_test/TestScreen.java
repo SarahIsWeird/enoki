@@ -1,7 +1,7 @@
 package blue.endless.enoki_test;
 
 import blue.endless.enoki.gui.MarkdownWidget;
-import blue.endless.enoki.markdown.SoftNode;
+import blue.endless.enoki.markdown.DocNode;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
@@ -37,7 +37,7 @@ public class TestScreen extends Screen {
 				
 				A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strips~~ text widths!**""");
 		
-		SoftNode document = SoftNode.of(rawDocument);
+		DocNode document = DocNode.of(rawDocument);
 		markdownWidget.setDocument(document);
 		
 		addDrawableChild(markdownWidget);
