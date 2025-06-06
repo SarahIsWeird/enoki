@@ -15,31 +15,31 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class TestScreen extends Screen {
-    private static final List<Extension> EXTENSIONS = List.of(StrikethroughExtension.create());
-    private static final Parser PARSER = Parser.builder().extensions(EXTENSIONS).build();
-
-    public TestScreen() {
-        super(Text.of("Test"));
-    }
-
-    @Override
-    protected void init() {
-        super.init();
-        clearChildren();
-
-        MarkdownWidget markdownWidget = new MarkdownWidget(50, 50, width - 100, height - 100);
-        Node rawDocument = PARSER.parse("""
-                # Hello, world! :3
-                This is a test.
-                
-                Anyways, this is a *real* long line to test out how it behaves when trying to wrap stuff.
-                Throw in a line break just for good measure, which it should be fine with?
-                
-                A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strips~~ text widths!**""");
-
-        SoftNode document = SoftNode.of(rawDocument);
-        markdownWidget.setDocument(document);
-
-        addDrawableChild(markdownWidget);
-    }
+	private static final List<Extension> EXTENSIONS = List.of(StrikethroughExtension.create());
+	private static final Parser PARSER = Parser.builder().extensions(EXTENSIONS).build();
+	
+	public TestScreen() {
+		super(Text.of("Test"));
+	}
+	
+	@Override
+	protected void init() {
+		super.init();
+		clearChildren();
+		
+		MarkdownWidget markdownWidget = new MarkdownWidget(50, 50, width - 100, height - 100);
+		Node rawDocument = PARSER.parse("""
+				# Hello, world! :3
+				This is a test.
+				
+				Anyways, this is a *real* long line to test out how it behaves when trying to wrap stuff.
+				Throw in a line break just for good measure, which it should be fine with?
+				
+				A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strips~~ text widths!**""");
+		
+		SoftNode document = SoftNode.of(rawDocument);
+		markdownWidget.setDocument(document);
+		
+		addDrawableChild(markdownWidget);
+	}
 }

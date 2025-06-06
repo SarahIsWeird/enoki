@@ -12,21 +12,21 @@ import org.lwjgl.glfw.GLFW;
 
 @Environment(EnvType.CLIENT)
 public final class EnokiTestClient implements ClientModInitializer {
-    private KeyBinding keyBinding;
-
-    @Override
-    public void onInitializeClient() {
-        keyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
-                "test.keybind.test",
-                InputUtil.Type.KEYSYM,
-                GLFW.GLFW_KEY_M,
-                "test.keybind.test"
-        ));
-
-        ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (keyBinding.isPressed()) {
-                MinecraftClient.getInstance().setScreen(new TestScreen());
-            }
-        });
-    }
+	private KeyBinding keyBinding;
+	
+	@Override
+	public void onInitializeClient() {
+		keyBinding = KeyBindingHelper.registerKeyBinding(new KeyBinding(
+				"test.keybind.test",
+				InputUtil.Type.KEYSYM,
+				GLFW.GLFW_KEY_M,
+				"test.keybind.test"
+				));
+		
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			if (keyBinding.isPressed()) {
+				MinecraftClient.getInstance().setScreen(new TestScreen());
+			}
+		});
+	}
 }
