@@ -1,0 +1,24 @@
+{
+    "schemaVersion": 1,
+    "id": "enoki",
+    "version": "${version}",
+    "name": "Enoki",
+    "description": "This is an example description! Tell everyone what your mod is about!",
+    "authors": [
+        "Falkreon",
+        "SarahIsWeird"
+    ],
+    "contact": {
+        "homepage": "https://fabricmc.net/",
+        "sources": "https://github.com/FabricMC/fabric-example-mod"
+    },
+    "license": "MIT",
+    "icon": "assets/enoki/icon.png",
+    "environment": "*",
+    "depends": {
+        "fabricloader": ">=0.16.14",
+        "minecraft": "~1.21.5",
+        "java": ">=21",
+        "fabric-api": "*"
+    }
+}
