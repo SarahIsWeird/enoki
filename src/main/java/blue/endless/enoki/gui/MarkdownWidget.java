@@ -11,7 +11,6 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.OrderedText;
-import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Formatting;
@@ -20,7 +19,6 @@ import org.commonmark.node.StrongEmphasis;
 
 import java.util.Deque;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 
 @Environment(EnvType.CLIENT)
@@ -115,10 +113,6 @@ public class MarkdownWidget extends ClickableWidget {
 		BlockContext context = contexts.peek();
 		if (context == null) return position;
 		
-		// FIXME: This was named `presumedIndent`. When is this indent calculation incorrect?
-		int indent = position.x() - context.x();
-		int lineWidth = context.width() - indent;
-		
 		String nodeText = node.text();
 		
 		// FIXME: Should be configurable
@@ -133,49 +127,44 @@ public class MarkdownWidget extends ClickableWidget {
 			case NodeType.CUSTOM_NODE -> node.node() instanceof Strikethrough ? externalStyle.withStrikethrough() : externalStyle;
 			default -> externalStyle;
 		};
-		
-		// FIXME: Why does the first line take the indent into account, but the remaining lines don't?
-		String firstLine = wordWrap.getFirstLine(font, lineWidth, nodeText, newStyle.asStyle());
-		String remainingText = nodeText.substring(firstLine.length());
-		List<String> remainingLines = wordWrap.wrap(font, context.width(), remainingText, newStyle.asStyle());
-		
-		OrderedText firstLineText = Text.literal(firstLine).setStyle(newStyle.asStyle()).asOrderedText();
-		dc.drawText(font, firstLineText, position.x(), position.y(), Colors.WHITE, newStyle.shadow());
+
+		Position nextPosition = renderInlineText(dc, position, newStyle, nodeText, context);
 		
 		boolean forceLineBreak = node.type() == NodeType.LIST_ITEM;
-		
-		Position endPosition = position;
-		
-		if (remainingLines.isEmpty()) {
-			endPosition = (forceLineBreak) ?
-					Position.of(context.x(), position.y() + font.fontHeight + node.type().getBottomMargin())
-					:
-						Position.of(position.x() + font.getWidth(firstLineText), position.y());
-		} else {
-			position = Position.of(context.x(), position.y() + font.fontHeight);
-			
-			OrderedText lastLine = null;
-			for (int i = 0; i < remainingLines.size(); i++) {
-				String line = remainingLines.get(i);
-				lastLine = Text.literal(line).setStyle(newStyle.asStyle()).asOrderedText();
-				dc.drawText(font, lastLine, position.x(), position.y(), Colors.WHITE, newStyle.shadow());
-				
-				if (i < remainingLines.size() - 1) {
-					position = Position.of(position.x(), position.y() + font.fontHeight);
-				}
-			}
-			
-			endPosition = (forceLineBreak) ?
-					Position.of(context.x(), position.y() + node.type().getBottomMargin())
-					:
-						Position.of(position.x() + font.getWidth(lastLine), position.y());
+		if (forceLineBreak) {
+			nextPosition = Position.of(context.x(), nextPosition.y() + font.fontHeight);
 		}
 		
 		for (DocNode child : node.children()) {
-			endPosition = render(child, dc, endPosition, contexts, newStyle);
+			nextPosition = render(child, dc, nextPosition, contexts, newStyle);
 		}
 		
-		return endPosition;
+		return nextPosition;
+	}
+	
+	private Position renderInlineText(DrawContext dc, Position position, NodeStyle style, String nodeText, BlockContext context) {
+		OrderedText lastLine = OrderedText.EMPTY;
+		Position nextPosition = position;
+		String remainingText = nodeText;
+		
+		while (!remainingText.isEmpty()) {
+			int incomingIndent = nextPosition.x() - context.x();
+			int availableLineWidth = context.width() - incomingIndent;
+			
+			String nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style.asStyle());
+			lastLine = Text.literal(nextLine).setStyle(style.asStyle()).asOrderedText();
+
+			dc.drawText(font, lastLine, nextPosition.x(), nextPosition.y(), Colors.WHITE, style.shadow());
+
+			// TODO: Check if just stripping spaces (and tabs?) is enough
+			remainingText = remainingText.substring(nextLine.length()).stripLeading();
+			if (!remainingText.isEmpty()) {
+				// The last line might have some space left over, which could still be used by children.
+				nextPosition = Position.of(context.x(), nextPosition.y() + font.fontHeight);
+			}
+		}
+		
+		return nextPosition.withOffset(font.getWidth(lastLine), 0);
 	}
 	
 	@Override

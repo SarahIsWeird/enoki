@@ -10,4 +10,8 @@ public record Position(int x, int y) {
 	public static Position of(int x, int y) {
 		return new Position(x, y);
 	}
+	
+	public Position withOffset(int x, int y) {
+		return new Position(this.x + x, this.y + y);
+	}
 }
