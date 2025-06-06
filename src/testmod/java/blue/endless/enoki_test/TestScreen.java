@@ -35,7 +35,7 @@ public class TestScreen extends Screen {
                 Anyways, this is a *real* long line to test out how it behaves when trying to wrap stuff.
                 Throw in a line break just for good measure, which it should be fine with?
                 
-                **Did you know? Sarah can be malicious as well :3 Frick your** ~~chicken strips~~ **text widths!**""");
+                A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strips~~ text widths!**""");
 
         SoftNode document = SoftNode.of(rawDocument);
         markdownWidget.setDocument(document);

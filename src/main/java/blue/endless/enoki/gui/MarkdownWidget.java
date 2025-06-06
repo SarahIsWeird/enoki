@@ -61,7 +61,7 @@ public class MarkdownWidget extends ClickableWidget {
         return renderInline(node, dc, position, contexts, style);
     }
 
-    private Position renderBlock(SoftNode node, DrawContext dc, Position nextPosition, Deque<BlockContext> contexts, Style style) {
+    private Position renderBlock(SoftNode node, DrawContext dc, Position nextPosition, Deque<BlockContext> contexts, Style externalStyle) {
         BlockContext context = contexts.peek();
         if (context == null) return nextPosition;
 
@@ -81,8 +81,8 @@ public class MarkdownWidget extends ClickableWidget {
 
         // FIXME: Customizable style provider that can set sizes
         Style newStyle = switch (node.type()) {
-            case HEADING -> getHeadingStyle(style, node);
-            default -> style;
+            case HEADING -> getHeadingStyle(externalStyle, node);
+            default -> externalStyle;
         };
 
         for (SoftNode child : node.children()) {
@@ -110,7 +110,7 @@ public class MarkdownWidget extends ClickableWidget {
         };
     }
 
-    private Position renderInline(SoftNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, Style style) {
+    private Position renderInline(SoftNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, Style externalStyle) {
         BlockContext context = contexts.peek();
         if (context == null) return position;
 
@@ -118,19 +118,19 @@ public class MarkdownWidget extends ClickableWidget {
         int indent = position.x() - context.x();
         int lineWidth = context.width() - indent;
 
-        String nodeText = node.asString();
+        String nodeText = node.text();
 
         // FIXME: Should be configurable
         if (node.type() == SoftNodeType.LIST_ITEM) {
-            nodeText = "• " + nodeText;
+            nodeText = "\u2022 " + nodeText;
         }
 
         // FIXME: Should be customizable
         Style newStyle = switch (node.type()) {
-            case SoftNodeType.EMPHASIS -> style.withItalic(true);
-            case SoftNodeType.STRONG_EMPHASIS -> ((StrongEmphasis) node.node()).getOpeningDelimiter().startsWith("*") ? style.withBold(true) : style.withItalic(true);
-            case SoftNodeType.CUSTOM_NODE -> node.node() instanceof Strikethrough ? style.withStrikethrough(true) : style;
-            default -> style;
+            case SoftNodeType.EMPHASIS -> externalStyle.withItalic(true);
+            case SoftNodeType.STRONG_EMPHASIS -> ((StrongEmphasis) node.node()).getOpeningDelimiter().startsWith("*") ? externalStyle.withBold(true) : externalStyle.withItalic(true);
+            case SoftNodeType.CUSTOM_NODE -> node.node() instanceof Strikethrough ? externalStyle.withStrikethrough(true) : externalStyle;
+            default -> externalStyle;
         };
 
         // FIXME: Why does the first line take the indent into account, but the remaining lines don't?
@@ -142,33 +142,39 @@ public class MarkdownWidget extends ClickableWidget {
         dc.drawText(font, firstLineText, position.x(), position.y(), Colors.WHITE, newStyle.getShadowColor() != null);
 
         boolean forceLineBreak = node.type() == SoftNodeType.LIST_ITEM;
-
+        
+        Position endPosition = position;
+        
         if (remainingLines.isEmpty()) {
-            if (forceLineBreak) {
-                return Position.of(context.x(), position.y() + font.fontHeight + node.type().getBottomMargin());
+            endPosition = (forceLineBreak) ?
+                Position.of(context.x(), position.y() + font.fontHeight + node.type().getBottomMargin())
+                :
+                Position.of(position.x() + font.getWidth(firstLineText), position.y());
+        } else {
+            position = Position.of(context.x(), position.y() + font.fontHeight);
+            
+            OrderedText lastLine = null;
+            for (int i = 0; i < remainingLines.size(); i++) {
+                String line = remainingLines.get(i);
+                lastLine = Text.literal(line).setStyle(newStyle).asOrderedText();
+                dc.drawText(font, lastLine, position.x(), position.y(), Colors.WHITE, externalStyle.getShadowColor() != null);
+                
+                if (i < remainingLines.size() - 1) {
+                    position = Position.of(position.x(), position.y() + font.fontHeight);
+               }
             }
-
-            return Position.of(position.x() + font.getWidth(firstLineText), position.y());
+            
+            endPosition = (forceLineBreak) ?
+                Position.of(context.x(), position.y() + node.type().getBottomMargin())
+                :
+                Position.of(position.x() + font.getWidth(lastLine), position.y());
         }
-
-        position = Position.of(context.x(), position.y() + font.fontHeight);
-
-        OrderedText lastLine = null;
-        for (int i = 0; i < remainingLines.size(); i++) {
-            String line = remainingLines.get(i);
-            lastLine = Text.literal(line).setStyle(newStyle).asOrderedText();
-            dc.drawText(font, lastLine, position.x(), position.y(), Colors.WHITE, style.getShadowColor() != null);
-
-            if (i < remainingLines.size() - 1) {
-                position = Position.of(position.x(), position.y() + font.fontHeight);
-            }
+        
+        for (SoftNode child : node.children()) {
+            endPosition = render(child, dc, endPosition, contexts, newStyle);
         }
-
-        if (forceLineBreak) {
-            return Position.of(context.x(), position.y() + node.type().getBottomMargin());
-        }
-
-        return Position.of(position.x() + font.getWidth(lastLine), position.y());
+        
+        return endPosition;
     }
 
     @Override
