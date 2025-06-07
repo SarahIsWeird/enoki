@@ -1,5 +1,6 @@
 package blue.endless.enoki.gui;
 
+import blue.endless.enoki.gui.widgets.TextSpanWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.LayoutStyle;
 import blue.endless.enoki.markdown.NodeStyle;
@@ -11,12 +12,13 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -35,6 +37,8 @@ public class MarkdownWidget extends ClickableWidget {
 			NodeType.PARAGRAPH, LayoutStyle.PARAGRAPH
 			);
 	
+	private final List<ClickableWidget> children = new ArrayList<>();
+	
 	public MarkdownWidget(int x, int y, int width, int height) {
 		super(x, y, width, height, Text.empty());
 		
@@ -44,34 +48,48 @@ public class MarkdownWidget extends ClickableWidget {
 	
 	public void setFont(TextRenderer font) {
 		this.font = Objects.requireNonNull(font);
+		this.rebuildWidgets();
 	}
 	
 	public void setDocument(DocNode document) {
 		this.document = document;
+		this.rebuildWidgets();
+	}
+	
+	public void setLayoutMap(Map<NodeType, LayoutStyle> layoutMap) {
+		this.layoutMap = layoutMap;
+		this.rebuildWidgets();
 	}
 	
 	@Override
 	public void renderWidget(DrawContext dc, int mouseX, int mouseY, float deltaTicks) {
 		dc.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
 		
+		for (ClickableWidget child : children) {
+			child.render(dc, mouseX, mouseY, deltaTicks);
+		}
+	}
+	
+	private void rebuildWidgets() {
 		Deque<BlockContext> contexts = new ArrayDeque<>();
 		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
-		
-		render(document, dc, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
+
+		this.children.clear();
+		buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
 	}
 	
-	private Position render(DocNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, NodeStyle style) {
+	private Position buildWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
 		if (node.type().isBlock()) {
-			return renderBlock(node, dc, position, contexts, style);
+			return buildBlockWidgets(node, position, contexts, style);
 		}
 		
-		return renderInline(node, dc, position, contexts, style);
+		return buildInlineWidgets(node, position, contexts, style);
 	}
 	
-	private Position renderBlock(DocNode node, DrawContext dc, Position nextPosition, Deque<BlockContext> contexts, NodeStyle externalStyle) {
+	private Position buildBlockWidgets(DocNode node, Position nextPosition, Deque<BlockContext> contexts, NodeStyle externalStyle) {
 		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
 		
-		NodeStyle newStyle = layout.style().withDefaults(externalStyle);
+		NodeStyle newStyle = layout.style().combined(externalStyle);
 		Margins margins = layout.margins();
 		
 		BlockContext context = contexts.peek();
@@ -83,7 +101,7 @@ public class MarkdownWidget extends ClickableWidget {
 		int width = context.width() - layout.indent();
 		
 		if (nextPosition.x() != context.x()) {
-			blockY += font.fontHeight;
+			blockY += newStyle.applyScale(font.fontHeight);
 		}
 		
 		BlockContext innerContext = new BlockContext(blockX, blockY, width);
@@ -91,23 +109,24 @@ public class MarkdownWidget extends ClickableWidget {
 		nextPosition = Position.of(blockX, blockY);
 		
 		for (DocNode child : node.children()) {
-			nextPosition = render(child, dc, nextPosition, contexts, newStyle);
+			nextPosition = buildWidgets(child, nextPosition, contexts, newStyle);
 		}
 		
 		contexts.pop();
 		
 		int nextY = nextPosition.y() + margins.bottom();
 		if (nextPosition.x() != context.x()) {
-			nextY += font.fontHeight;
+			nextY += newStyle.applyScale(font.fontHeight);
 		}
 		
 		return Position.of(context.x(), nextY);
 	}
 	
-	private Position renderInline(DocNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, NodeStyle externalStyle) {
+	private Position buildInlineWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle externalStyle) {
 		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
 		
-		NodeStyle newStyle = layout.style().withDefaults(externalStyle);
+		NodeStyle newStyle = layout.style().combined(externalStyle);
+		
 		Margins margins = layout.margins();
 		
 		BlockContext context = contexts.peek();
@@ -120,22 +139,31 @@ public class MarkdownWidget extends ClickableWidget {
 			nodeText = "\u2022 " + nodeText;
 		}
 
-		Position nextPosition = renderInlineText(dc, position, newStyle, nodeText, context);
+		Position nextPosition = buildInlineText(position, newStyle, nodeText, context);
 		
-		boolean forceLineBreak = node.type() == NodeType.LIST_ITEM;
-		if (forceLineBreak) {
-			nextPosition = Position.of(context.x(), nextPosition.y() + font.fontHeight);
+		BlockContext innerContext = context;
+		if (node.type() == NodeType.LIST_ITEM) {
+			innerContext = new BlockContext(nextPosition.x(), nextPosition.y(), context.width() - nextPosition.x());
 		}
 		
+		contexts.push(innerContext);
+		
 		for (DocNode child : node.children()) {
-			nextPosition = render(child, dc, nextPosition, contexts, newStyle);
+			nextPosition = buildWidgets(child, nextPosition, contexts, newStyle);
+		}
+		
+		contexts.pop();
+
+		boolean forceLineBreak = node.type() == NodeType.LIST_ITEM;
+		if (forceLineBreak) {
+			nextPosition = Position.of(context.x(), nextPosition.y());
 		}
 		
 		return nextPosition;
 	}
 	
-	private Position renderInlineText(DrawContext dc, Position position, NodeStyle style, String nodeText, BlockContext context) {
-		OrderedText lastLine = OrderedText.EMPTY;
+	private Position buildInlineText(Position position, NodeStyle style, String nodeText, BlockContext context) {
+		Text lastLine = Text.empty();
 		Position nextPosition = position;
 		String remainingText = nodeText;
 		
@@ -143,20 +171,21 @@ public class MarkdownWidget extends ClickableWidget {
 			int incomingIndent = nextPosition.x() - context.x();
 			int availableLineWidth = context.width() - incomingIndent;
 			
-			String nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style.asStyle());
-			lastLine = Text.literal(nextLine).setStyle(style.asStyle()).asOrderedText();
-
-			dc.drawText(font, lastLine, nextPosition.x(), nextPosition.y(), Colors.WHITE, style.shadow());
+			String nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style);
+			lastLine = Text.literal(nextLine).setStyle(style.asStyle());
+			
+			ClickableWidget child = new TextSpanWidget(nextPosition.x(), nextPosition.y(), lastLine, style, this.font);
+			this.children.add(child);
 
 			// TODO: Check if just stripping spaces (and tabs?) is enough
 			remainingText = remainingText.substring(nextLine.length()).stripLeading();
 			if (!remainingText.isEmpty()) {
 				// The last line might have some space left over, which could still be used by children.
-				nextPosition = Position.of(context.x(), nextPosition.y() + font.fontHeight);
+				nextPosition = Position.of(context.x(), nextPosition.y() + style.applyScale(font.fontHeight));
 			}
 		}
 		
-		return nextPosition.withOffset(font.getWidth(lastLine), 0);
+		return nextPosition.withOffset(style.getTextWidth(lastLine, font), 0);
 	}
 	
 	@Override

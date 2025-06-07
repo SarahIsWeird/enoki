@@ -6,6 +6,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
+
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
 import org.commonmark.node.Node;
@@ -29,13 +30,18 @@ public class TestScreen extends Screen {
 		
 		MarkdownWidget markdownWidget = new MarkdownWidget(50, 50, width - 100, height - 100);
 		Node rawDocument = PARSER.parse("""
-				# Hello, world! :3
+				# Hello, world! *:3*
 				This is a test.
 				
 				Anyways, this is a *real* long line to test out how it behaves when trying to wrap stuff.
 				Throw in a line break just for good measure, which it should be fine with?
 				
-				A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strips~~ text widths!**""");
+				A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strips~~ text widths!**
+				
+				Things I hate:
+				- Minecraft's text rendering
+					- Wowie
+				- Minecraft's text renderer""");
 		
 		DocNode document = DocNode.of(rawDocument);
 		markdownWidget.setDocument(document);

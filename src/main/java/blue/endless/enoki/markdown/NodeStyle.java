@@ -2,7 +2,9 @@ package blue.endless.enoki.markdown;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.font.TextRenderer;
 import net.minecraft.text.Style;
+import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 
 /**
@@ -30,6 +32,10 @@ public record NodeStyle(float size, int color, byte style) {
 	
 	public NodeStyle(float size, int color, int style) {
 		this(size, color, (byte) style);
+	}
+
+	public NodeStyle {
+		if (size <= 0.0f) throw new IllegalArgumentException("The node size must be strictly positive!");
 	}
 	
 	public boolean bold() {
@@ -121,9 +127,22 @@ public record NodeStyle(float size, int color, byte style) {
 		return result;
 	}
 	
-	public NodeStyle withDefaults(NodeStyle defaults) {
+	public NodeStyle combined(NodeStyle defaults) {
 		int color = this.color;
 		if (color == -1) color = defaults.color;
-		return new NodeStyle(size, color, this.style | defaults.style);
+		return new NodeStyle(size * defaults.size, color, this.style | defaults.style);
+	}
+	
+	public int applyScale(int value) {
+		return value;
+		// return (int) (value * size);
+	}
+	
+	public int getTextWidth(String string, TextRenderer font) {
+		return getTextWidth(Text.literal(string).setStyle(this.asStyle()), font);
+	}
+	
+	public int getTextWidth(Text text, TextRenderer font) {
+		return this.applyScale(font.getWidth(text));
 	}
 }
