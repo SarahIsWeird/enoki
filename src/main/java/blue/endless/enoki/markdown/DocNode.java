@@ -76,7 +76,10 @@ public record DocNode(NodeType type, String text, String value, List<DocNode> ch
 				NodeType levelHeading = switch(heading.getLevel()) {
 					case 1 -> NodeType.H1;
 					case 2 -> NodeType.H2;
-					default -> NodeType.H3;
+					case 3 -> NodeType.H3;
+					case 4 -> NodeType.H4;
+					case 5 -> NodeType.H5;
+					default -> NodeType.H6;
 				};
 				yield new DocNode(levelHeading, "", "", children);
 			}
@@ -87,7 +90,7 @@ public record DocNode(NodeType type, String text, String value, List<DocNode> ch
 			case Link link -> new DocNode(NodeType.LINK, link.getTitle(), link.getDestination(), children);
 			// For now, we skip these. In HTML, this is rendered as an anchor.
 			case LinkReferenceDefinition ref -> new DocNode(NodeType.LINK_REFERENCE_DEFINITION, "", ref.getLabel() + ":" + ref.getDestination() + ":" + ref.getTitle(), children);
-			case OrderedList ordered -> new DocNode(NodeType.ORDERED_LIST, Objects.requireNonNullElse(ordered.getMarkerStartNumber(), 1).toString(), children);
+			case OrderedList ordered -> new DocNode(NodeType.ORDERED_LIST, "", Objects.requireNonNullElse(ordered.getMarkerStartNumber(), 1).toString(), children);
 			case SoftLineBreak ignored -> new DocNode(NodeType.SOFT_LINE_BREAK, " ", children);
 			case Strikethrough strike -> new DocNode(NodeType.STRIKETHROUGH, "", children);
 			
