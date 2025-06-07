@@ -10,8 +10,10 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.gui.widget.ContainerWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 
@@ -23,7 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 
 @Environment(EnvType.CLIENT)
-public class MarkdownWidget extends ClickableWidget {
+public class MarkdownWidget extends ContainerWidget {
 	private DocNode document;
 	private final WordWrap wordWrap;
 	private TextRenderer font;
@@ -38,12 +40,15 @@ public class MarkdownWidget extends ClickableWidget {
 			);
 	
 	private final List<ClickableWidget> children = new ArrayList<>();
+	private final boolean scrollable;
+	private int contentHeight;
 	
-	public MarkdownWidget(int x, int y, int width, int height) {
+	public MarkdownWidget(int x, int y, int width, int height, boolean scrollable) {
 		super(x, y, width, height, Text.empty());
 		
 		this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
+		this.scrollable = scrollable;
 	}
 	
 	public void setFont(TextRenderer font) {
@@ -63,10 +68,23 @@ public class MarkdownWidget extends ClickableWidget {
 	
 	@Override
 	public void renderWidget(DrawContext dc, int mouseX, int mouseY, float deltaTicks) {
+		dc.getMatrices().push();
 		dc.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
+		
+		if (this.scrollable) {
+			dc.enableScissor(getX(), getY(), getX() + width, getY() + height);
+			dc.getMatrices().translate(0, -getScrollY(), 0);
+		}
 		
 		for (ClickableWidget child : children) {
 			child.render(dc, mouseX, mouseY, deltaTicks);
+		}
+		
+		dc.disableScissor();
+		dc.getMatrices().pop();
+		
+		if (this.scrollable) {
+			this.drawScrollbar(dc);
 		}
 	}
 	
@@ -75,7 +93,9 @@ public class MarkdownWidget extends ClickableWidget {
 		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
 
 		this.children.clear();
-		buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
+		Position finalPosition = buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
+		
+		this.contentHeight = finalPosition.y() - this.getY();
 	}
 	
 	private Position buildWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
@@ -123,15 +143,11 @@ public class MarkdownWidget extends ClickableWidget {
 	}
 	
 	private Position buildInlineWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle externalStyle) {
-		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
-		
-		NodeStyle newStyle = layout.style().combined(externalStyle);
-		
-		Margins margins = layout.margins();
-		
 		BlockContext context = contexts.peek();
 		if (context == null) return position;
-		
+
+		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
+		NodeStyle newStyle = layout.style().combined(externalStyle);
 		String nodeText = node.text();
 		
 		// FIXME: Should be configurable
@@ -192,9 +208,19 @@ public class MarkdownWidget extends ClickableWidget {
 	protected void appendClickableNarrations(NarrationMessageBuilder builder) {
 		
 	}
-	
+
 	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		return false;
+	protected int getContentsHeightWithPadding() {
+		return contentHeight;
+	}
+
+	@Override
+	protected double getDeltaYPerScroll() {
+		return 10.0;
+	}
+
+	@Override
+	public List<? extends Element> children() {
+		return this.children;
 	}
 }

@@ -28,7 +28,7 @@ public class TestScreen extends Screen {
 		super.init();
 		clearChildren();
 		
-		MarkdownWidget markdownWidget = new MarkdownWidget(50, 50, width - 100, height - 100);
+		MarkdownWidget markdownWidget = new MarkdownWidget(50, 50, width - 100, height - 100, true);
 		Node rawDocument = PARSER.parse("""
 				# Hello, world! *:3*
 				This is a test.
@@ -41,7 +41,9 @@ public class TestScreen extends Screen {
 				Things I hate:
 				- Minecraft's text rendering
 					- Wowie
-				- Minecraft's text renderer""");
+				- Minecraft's text renderer
+				
+				## Okay""");
 		
 		DocNode document = DocNode.of(rawDocument);
 		markdownWidget.setDocument(document);

@@ -24,6 +24,11 @@ public class TextSpanWidget extends ClickableWidget {
 	}
 
 	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		return false;
+	}
+
+	@Override
 	protected void appendClickableNarrations(NarrationMessageBuilder builder) {
 
 	}
