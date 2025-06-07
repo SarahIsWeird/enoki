@@ -1,46 +1,70 @@
 package blue.endless.enoki.markdown;
 
+import org.commonmark.node.BlockQuote;
+import org.commonmark.node.BulletList;
+import org.commonmark.node.Code;
+import org.commonmark.node.CustomBlock;
+import org.commonmark.node.CustomNode;
+import org.commonmark.node.Document;
+import org.commonmark.node.Emphasis;
+import org.commonmark.node.FencedCodeBlock;
+import org.commonmark.node.HardLineBreak;
+import org.commonmark.node.Heading;
+import org.commonmark.node.HtmlBlock;
+import org.commonmark.node.HtmlInline;
+import org.commonmark.node.Image;
+import org.commonmark.node.IndentedCodeBlock;
+import org.commonmark.node.Link;
+import org.commonmark.node.LinkReferenceDefinition;
+import org.commonmark.node.ListItem;
+import org.commonmark.node.Node;
+import org.commonmark.node.OrderedList;
+import org.commonmark.node.Paragraph;
+import org.commonmark.node.SoftLineBreak;
+import org.commonmark.node.StrongEmphasis;
+import org.commonmark.node.Text;
+import org.commonmark.node.ThematicBreak;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import org.commonmark.node.*;
 
 @Environment(EnvType.CLIENT)
 public enum NodeType {
-	BLOCK_QUOTE(BlockQuote.class, 1, true, 2),
-	BULLET_LIST(BulletList.class, 1, true, 4),
-	CODE(Code.class, 0, true, 2),
-	CUSTOM_BLOCK(CustomBlock.class, 0, true, 2),
-	CUSTOM_NODE(CustomNode.class, 0, false, 0),
-	DOCUMENT(Document.class, 0, true, 0),
-	EMPHASIS(Emphasis.class, 0, false, 0),
-	FENCED_CODE_BLOCK(FencedCodeBlock.class, 0, true, 2),
-	HARD_LINE_BREAK(HardLineBreak.class, 0, false, 0),
-	HEADING(Heading.class, 0, true, 4),
-	HTML_BLOCK(HtmlBlock.class, 1, true, 2),
-	HTML_INLINE(HtmlInline.class, 0, false, 0),
-	IMAGE(Image.class, 0, false, 0),
-	INDENTED_CODE_BLOCK(IndentedCodeBlock.class, 1, true, 2),
-	LINK(Link.class, 0, false, 0),
-	LINK_REFERENCE_DEFINITION(LinkReferenceDefinition.class, 0, false, 0),
-	LIST_ITEM(ListItem.class, 0, false, 2),
-	ORDERED_LIST(OrderedList.class, 1, true, 4),
-	PARAGRAPH(Paragraph.class, 0, true, 4),
-	SOFT_LINE_BREAK(SoftLineBreak.class, 0, false, 0),
-	STRONG_EMPHASIS(StrongEmphasis.class, 0, false, 0),
-	TEXT(Text.class, 0, false, 0),
-	THEMATIC_BREAK(ThematicBreak.class, 0, true, 4),
+	BLOCK_QUOTE(BlockQuote.class, true),
+	BULLET_LIST(BulletList.class, true),
+	CODE(Code.class, true),
+	CUSTOM_BLOCK(CustomBlock.class, true),
+	CUSTOM_NODE(CustomNode.class, false),
+	STRIKETHROUGH(CustomNode.class, false),
+	DOCUMENT(Document.class, true),
+	EMPHASIS(Emphasis.class, false),
+	FENCED_CODE_BLOCK(FencedCodeBlock.class, true),
+	HARD_LINE_BREAK(HardLineBreak.class, false),
+	H1(Heading.class, true),
+	H2(Heading.class, true),
+	H3(Heading.class, true),
+	HTML_BLOCK(HtmlBlock.class, true),
+	HTML_INLINE(HtmlInline.class, false),
+	IMAGE(Image.class, false),
+	INDENTED_CODE_BLOCK(IndentedCodeBlock.class, true),
+	LINK(Link.class, false),
+	LINK_REFERENCE_DEFINITION(LinkReferenceDefinition.class, false),
+	LIST_ITEM(ListItem.class, false),
+	ORDERED_LIST(OrderedList.class, true),
+	PARAGRAPH(Paragraph.class, true),
+	SOFT_LINE_BREAK(SoftLineBreak.class, false),
+	STRONG_EMPHASIS(StrongEmphasis.class, false),
+	UNDERLINE(StrongEmphasis.class, false),
+	TEXT(Text.class, false),
+	THEMATIC_BREAK(ThematicBreak.class, true),
 	;
 	
 	private final Class<? extends Node> clazz;
-	private final int indent;
 	private final boolean isBlock;
-	private final int marginBottom;
 	
-	NodeType(Class<? extends Node> clazz, int indent, boolean isBlock, int marginBottom) {
+	NodeType(Class<? extends Node> clazz, boolean isBlock) {
 		this.clazz = clazz;
-		this.indent = indent;
 		this.isBlock = isBlock;
-		this.marginBottom = marginBottom;
 	}
 	
 	public static NodeType getByClass(Class<? extends Node> clazz) {
@@ -55,19 +79,11 @@ public enum NodeType {
 		return clazz;
 	}
 	
-	public int getIndent() {
-		return indent;
-	}
-	
 	public boolean isBlock() {
 		return isBlock;
 	}
 	
 	public boolean isInline() {
 		return !isBlock;
-	}
-	
-	public int getBottomMargin() {
-		return marginBottom;
 	}
 }

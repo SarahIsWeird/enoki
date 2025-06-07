@@ -1,6 +1,7 @@
 package blue.endless.enoki.gui;
 
 import blue.endless.enoki.markdown.DocNode;
+import blue.endless.enoki.markdown.LayoutStyle;
 import blue.endless.enoki.markdown.NodeStyle;
 import blue.endless.enoki.markdown.NodeType;
 import net.fabricmc.api.EnvType;
@@ -13,12 +14,10 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.OrderedText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
-import net.minecraft.util.Formatting;
-import org.commonmark.ext.gfm.strikethrough.Strikethrough;
-import org.commonmark.node.StrongEmphasis;
 
+import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.LinkedList;
+import java.util.Map;
 import java.util.Objects;
 
 @Environment(EnvType.CLIENT)
@@ -26,6 +25,15 @@ public class MarkdownWidget extends ClickableWidget {
 	private DocNode document;
 	private final WordWrap wordWrap;
 	private TextRenderer font;
+	private Map<NodeType, LayoutStyle> layoutMap = Map.of(
+			NodeType.DOCUMENT, LayoutStyle.DOCUMENT,
+			NodeType.H1, LayoutStyle.H1,
+			NodeType.EMPHASIS, LayoutStyle.ITALIC,
+			NodeType.STRONG_EMPHASIS, LayoutStyle.BOLD,
+			NodeType.STRIKETHROUGH, LayoutStyle.STRIKETHROUGH,
+			NodeType.UNDERLINE, LayoutStyle.UNDERLINE,
+			NodeType.PARAGRAPH, LayoutStyle.PARAGRAPH
+			);
 	
 	public MarkdownWidget(int x, int y, int width, int height) {
 		super(x, y, width, height, Text.empty());
@@ -46,8 +54,8 @@ public class MarkdownWidget extends ClickableWidget {
 	public void renderWidget(DrawContext dc, int mouseX, int mouseY, float deltaTicks) {
 		dc.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
 		
-		Deque<BlockContext> contexts = new LinkedList<>();
-		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24));
+		Deque<BlockContext> contexts = new ArrayDeque<>();
+		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
 		
 		render(document, dc, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
 	}
@@ -61,28 +69,26 @@ public class MarkdownWidget extends ClickableWidget {
 	}
 	
 	private Position renderBlock(DocNode node, DrawContext dc, Position nextPosition, Deque<BlockContext> contexts, NodeStyle externalStyle) {
+		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
+		
+		NodeStyle newStyle = layout.style().withDefaults(externalStyle);
+		Margins margins = layout.margins();
+		
 		BlockContext context = contexts.peek();
 		if (context == null) return nextPosition;
 		
-		int indent = node.type().getIndent() * 8; // FIXME: Why 8?
-				int blockX = context.x() + indent;
-		int blockY = nextPosition.y();
-		int width = context.width() - indent;
+		int blockX = context.x() + layout.indent();
+		// TODO: Maybe bump top margin down to after we've figured out the line break behavior
+		int blockY = nextPosition.y() + margins.top();
+		int width = context.width() - layout.indent();
 		
 		if (nextPosition.x() != context.x()) {
-			// FIXME: Configurable yAdvance
-			blockY += 16;
+			blockY += font.fontHeight;
 		}
 		
 		BlockContext innerContext = new BlockContext(blockX, blockY, width);
 		contexts.push(innerContext);
 		nextPosition = Position.of(blockX, blockY);
-		
-		// FIXME: Customizable style provider that can set sizes
-		NodeStyle newStyle = switch (node.type()) {
-			case HEADING -> getHeadingStyle(externalStyle, node);
-			default -> externalStyle;
-		};
 		
 		for (DocNode child : node.children()) {
 			nextPosition = render(child, dc, nextPosition, contexts, newStyle);
@@ -90,26 +96,20 @@ public class MarkdownWidget extends ClickableWidget {
 		
 		contexts.pop();
 		
-		// FIXME: When, if ever, would this not be `context`?
-		BlockContext outerContext = Objects.requireNonNullElse(contexts.peek(), context);
-		
-		int nextY = nextPosition.y() + node.type().getBottomMargin();
+		int nextY = nextPosition.y() + margins.bottom();
 		if (nextPosition.x() != context.x()) {
 			nextY += font.fontHeight;
 		}
 		
-		return Position.of(outerContext.x(), nextY);
-	}
-	
-	private static NodeStyle getHeadingStyle(NodeStyle outerStyle, DocNode node) {
-		return switch (node.value()) {
-			case "1" -> outerStyle.withBold().withColor(Formatting.AQUA);
-			case "2" -> outerStyle.withColor(Formatting.LIGHT_PURPLE);
-			default -> outerStyle.withBold().withColor(Formatting.BLUE);
-		};
+		return Position.of(context.x(), nextY);
 	}
 	
 	private Position renderInline(DocNode node, DrawContext dc, Position position, Deque<BlockContext> contexts, NodeStyle externalStyle) {
+		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
+		
+		NodeStyle newStyle = layout.style().withDefaults(externalStyle);
+		Margins margins = layout.margins();
+		
 		BlockContext context = contexts.peek();
 		if (context == null) return position;
 		
@@ -119,14 +119,6 @@ public class MarkdownWidget extends ClickableWidget {
 		if (node.type() == NodeType.LIST_ITEM) {
 			nodeText = "\u2022 " + nodeText;
 		}
-		
-		// FIXME: Should be customizable
-		NodeStyle newStyle = switch (node.type()) {
-			case NodeType.EMPHASIS -> externalStyle.withItalic();
-			case NodeType.STRONG_EMPHASIS -> ((StrongEmphasis) node.node()).getOpeningDelimiter().startsWith("*") ? externalStyle.withBold() : externalStyle.withItalic();
-			case NodeType.CUSTOM_NODE -> node.node() instanceof Strikethrough ? externalStyle.withStrikethrough() : externalStyle;
-			default -> externalStyle;
-		};
 
 		Position nextPosition = renderInlineText(dc, position, newStyle, nodeText, context);
 		

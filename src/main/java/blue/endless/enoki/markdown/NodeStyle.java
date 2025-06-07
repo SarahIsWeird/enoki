@@ -54,6 +54,10 @@ public record NodeStyle(float size, int color, byte style) {
 	
 	// "with"-ers
 	
+	public NodeStyle withSize(float value) {
+		return new NodeStyle(value, color, style);
+	}
+	
 	public NodeStyle withColor(Formatting formatting) {
 		Integer formatColor = formatting.getColorValue();
 		return (formatColor == null) ? withColor(-1) : withColor(formatColor);
@@ -115,5 +119,11 @@ public record NodeStyle(float size, int color, byte style) {
 		if (color != -1)     result = result.withColor(color);
 		
 		return result;
+	}
+	
+	public NodeStyle withDefaults(NodeStyle defaults) {
+		int color = this.color;
+		if (color == -1) color = defaults.color;
+		return new NodeStyle(size, color, this.style | defaults.style);
 	}
 }
