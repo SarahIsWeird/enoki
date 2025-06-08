@@ -1,8 +1,7 @@
 package blue.endless.enoki.markdown;
 
-import blue.endless.enoki.gui.Size;
 import blue.endless.enoki.markdown.attributes.DocImageAttributes;
-import blue.endless.enoki.utils.IntUtils;
+import blue.endless.enoki.utils.ParseUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.text.MutableText;
@@ -10,8 +9,8 @@ import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.sarahisweird.commonmark.ext.image_attributes.ImageAttributes;
 import org.commonmark.ext.gfm.strikethrough.Strikethrough;
-import org.commonmark.ext.image.attributes.ImageAttributes;
 import org.commonmark.node.Code;
 import org.commonmark.node.FencedCodeBlock;
 import org.commonmark.node.HardLineBreak;
@@ -28,9 +27,12 @@ import org.commonmark.node.SoftLineBreak;
 import org.commonmark.node.Text;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
 public record DocNode(NodeType type, String text, Object attributes, List<DocNode> children) {
@@ -104,29 +106,73 @@ public record DocNode(NodeType type, String text, Object attributes, List<DocNod
 			case LinkReferenceDefinition ref -> new DocNode(NodeType.LINK_REFERENCE_DEFINITION, "", ref.getLabel() + ":" + ref.getDestination() + ":" + ref.getTitle(), children);
 			case OrderedList ordered -> new DocNode(NodeType.ORDERED_LIST, "", Objects.requireNonNullElse(ordered.getMarkerStartNumber(), 1).toString(), children);
 			case SoftLineBreak ignored -> new DocNode(NodeType.SOFT_LINE_BREAK, " ", children);
-			case Strikethrough strike -> new DocNode(NodeType.STRIKETHROUGH, "", children);
+			case Strikethrough ignored -> new DocNode(NodeType.STRIKETHROUGH, "", children);
 			
 			default -> new DocNode(NodeType.getByClass(node.getClass()), children);
 		};
 	}
 	
 	private static DocNode normalizeImageNode(Image image, List<DocNode> children) {
-		Size imageSize = Size.DEFAULT;
-		
-		Node lastChild = image.getLastChild();
-		if (lastChild instanceof ImageAttributes attributes) {
-			int width = IntUtils.parseIntOrDefault(attributes.getAttributes().get("width"), -1);
-			int height = IntUtils.parseIntOrDefault(attributes.getAttributes().get("height"), -1);
-			imageSize = new Size(width, height);
-		}
-
 		Identifier imageLocation = Identifier.tryParse(image.getDestination());
 		if (imageLocation == null) {
 			NORM_LOGGER.warn("Image location {} is not a valid Identifier", image.getDestination());
 		}
 		
-		DocImageAttributes attrs = new DocImageAttributes(imageLocation, imageSize);
-		return new DocNode(NodeType.IMAGE, image.getTitle(), attrs, children);
+		DocImageAttributes.Builder attrBuilder = DocImageAttributes.builder()
+			.imageId(imageLocation);
+		
+		Node next = image.getFirstChild();
+		while (next != null) {
+			if (next instanceof ImageAttributes attributes) appendImageAttributes(attrBuilder, attributes);
+			next = next.getNext();
+		}
+		
+		return new DocNode(NodeType.IMAGE, image.getTitle(), attrBuilder.build(), children);
+	}
+	
+	private static void appendImageAttributes(DocImageAttributes.Builder builder, ImageAttributes attributes) {
+		for (Map.Entry<String, String> entry : attributes.getAttributes().entrySet()) {
+			switch (entry.getKey().toLowerCase()) {
+				case "width" -> builder.width(ParseUtils.parseIntOrDefault(entry.getValue(), -1));
+				case "height" -> builder.height(ParseUtils.parseIntOrDefault(entry.getValue(), -1));
+				case "fill" -> appendFillType(builder, entry.getValue());
+				case "inline" -> appendInline(builder, entry.getValue());
+				default -> NORM_LOGGER.warn("Unknown image attribute {}", entry.getKey());
+			}
+		}
+	}
+	
+	private static void appendFillType(DocImageAttributes.Builder builder, String value) {
+		DocImageAttributes.FillType type = DocImageAttributes.FillType.of(value);
+		if (type != null) {
+			builder.fillType(type);
+			return;
+		}
+		
+		String allowedValues = Arrays.stream(DocImageAttributes.FillType.values())
+			.map(fillType -> fillType.toString().toLowerCase())
+			.collect(Collectors.joining(", "));
+
+		NORM_LOGGER.warn(
+			"Fill type '{}' is not a valid FillType, defaulting to 'none'. (Allowed values: {})",
+			value,
+			allowedValues
+		);
+		
+		builder.fillType(DocImageAttributes.FillType.NONE);
+	}
+	
+	private static void appendInline(DocImageAttributes.Builder builder, String value) {
+		Boolean isInline = ParseUtils.tryParseBoolean(value);
+		if (isInline != null) {
+			builder.isInline(isInline);
+			return;
+		}
+		
+		NORM_LOGGER.warn(
+			"Inline value '{}' is not a valid boolean, defaulting to 'true'. (Allowed values: 'true'/'yes', 'false'/'no')",
+			value
+		);
 	}
 
 	public static List<DocNode> normalizeChildren(Node root) {

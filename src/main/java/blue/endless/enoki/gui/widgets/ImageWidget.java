@@ -1,6 +1,6 @@
 package blue.endless.enoki.gui.widgets;
 
-import blue.endless.enoki.MarkdownResourceReloadListener;
+import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.gui.Size;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -20,7 +20,7 @@ public class ImageWidget extends ClickableWidget {
 		super(x, y, width, height, altText);
 		this.font = font;
 		this.image = image;
-		this.imageSize = MarkdownResourceReloadListener.getImageSize(image);
+		this.imageSize = MarkdownWidget.getActualImageSize(image);
 	}
 
 	@Override

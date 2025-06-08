@@ -9,6 +9,7 @@ import blue.endless.enoki.markdown.NodeStyle;
 import blue.endless.enoki.markdown.NodeType;
 import blue.endless.enoki.markdown.attributes.DocImageAttributes;
 import blue.endless.enoki.text.WordWrap;
+import com.mojang.blaze3d.textures.GpuTexture;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -197,18 +198,22 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	private Position buildImage(Position position, BlockContext context, NodeStyle style, DocNode node) {
-		if (position.x() != context.x()) {
-			position = Position.of(context.x(), position.y() + style.applyScale(font.fontHeight));
-		}
-		
 		if (!(node.attributes() instanceof DocImageAttributes attributes)) {
 			throw new IllegalStateException("Expected image attributes to be instanceof DocImageAttributes");
+		}
+
+		if (!attributes.isInline() && position.x() != context.x()) {
+			position = Position.of(context.x(), position.y() + style.applyScale(font.fontHeight));
 		}
 
 		Identifier imageId = attributes.imageId();
 		if (imageId == null) return position;
 		
-		Size childSize = getImageSize(attributes, context, style, imageId);
+		Size childSize = getImageSize(attributes, style, imageId);
+		if (childSize == null) {
+			LOGGER.error("Failed to get image size for image id {}!",  imageId);
+			return position;
+		}
 
 		Text altText = node.asText(NodeStyle.NORMAL,
 			(type) -> layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT).style());
@@ -216,19 +221,40 @@ public class MarkdownWidget extends ContainerWidget {
 		ClickableWidget child = new ImageWidget(position.x(), position.y(), childSize.width(), childSize.height(), altText, imageId, font);
 		this.children.add(child);
 		
-		return Position.of(context.x(), position.y() + childSize.height());
+		Position nextPosition = Position.of(position.x() + childSize.width(), position.y());
+		
+		if (!attributes.isInline() || ((nextPosition.x() - context.x()) > context.width())) {
+			nextPosition = Position.of(context.x(), position.y() + childSize.height());
+		}
+		
+		return nextPosition;
 	}
 	
-	private Size getImageSize(DocImageAttributes attributes, BlockContext context, NodeStyle style, Identifier imageId) {
+	public static Size getActualImageSize(Identifier imageId) {
+		Size size = MarkdownResourceReloadListener.getImageSize(imageId);
+		if (size != null) return size;
+		
+		try {
+			GpuTexture texture = MinecraftClient.getInstance().getTextureManager().getTexture(imageId).getGlTexture();
+			return new Size(texture.getWidth(0),  texture.getHeight(0));
+		} catch (IllegalStateException e) {
+			return null;
+		}
+	}
+	
+	private Size getImageSize(DocImageAttributes attributes, NodeStyle style, Identifier imageId) {
 		int width = attributes.size().width();
 		int height = attributes.size().height();
 		
 		if (width != -1 && height != -1) {
 			return attributes.size();
 		}
+		
+		Size actualSize = getActualImageSize(imageId);
+		if (actualSize == null) return null;
 
 		// FIXME: Aspect ratio stuff
-		return MarkdownResourceReloadListener.getImageSize(imageId).scale(style.size());
+		return actualSize.scale(style.size());
 	}
 	
 	private Position buildInlineText(Position position, NodeStyle style, String nodeText, BlockContext context) {

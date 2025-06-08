@@ -15,6 +15,11 @@ repositories {
 		name = "TerraformersMC"
 		url = uri("https://maven.terraformersmc.com/")
 	}
+	
+	maven {
+		name = "Sarah's Maven"
+		url = uri("https://maven.sarahisweird.com/releases")
+	}
 }
 
 sourceSets {
@@ -53,7 +58,7 @@ dependencies {
 
 	include api("org.commonmark:commonmark:${project.commonmark_version}")
 	include api("org.commonmark:commonmark-ext-gfm-strikethrough:${project.commonmark_version}")
-	include api("org.commonmark:commonmark-ext-image-attributes:${project.commonmark_version}")
+	include api("com.sarahisweird.commonmark:commonmark-ext-image-attributes-v2:${project.image_attributes_v2_version}")
 
 	modLocalRuntime "com.terraformersmc:modmenu:${project.mod_menu_version}"
 
