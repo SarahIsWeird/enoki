@@ -90,7 +90,10 @@ public class MarkdownWidget extends ContainerWidget {
 			child.render(dc, mouseX, mouseY, deltaTicks);
 		}
 		
-		dc.disableScissor();
+		if (this.scrollable) {
+			dc.disableScissor();
+		}
+		
 		dc.getMatrices().pop();
 		
 		if (this.scrollable) {
