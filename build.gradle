@@ -53,6 +53,7 @@ dependencies {
 
 	include api("org.commonmark:commonmark:${project.commonmark_version}")
 	include api("org.commonmark:commonmark-ext-gfm-strikethrough:${project.commonmark_version}")
+	include api("org.commonmark:commonmark-ext-image-attributes:${project.commonmark_version}")
 
 	modLocalRuntime "com.terraformersmc:modmenu:${project.mod_menu_version}"
 

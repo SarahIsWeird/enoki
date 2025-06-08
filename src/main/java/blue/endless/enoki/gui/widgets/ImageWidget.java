@@ -1,0 +1,56 @@
+package blue.endless.enoki.gui.widgets;
+
+import blue.endless.enoki.MarkdownResourceReloadListener;
+import blue.endless.enoki.gui.Size;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.client.render.RenderLayer;
+import net.minecraft.text.Text;
+import net.minecraft.util.Colors;
+import net.minecraft.util.Identifier;
+
+public class ImageWidget extends ClickableWidget {
+	private final TextRenderer font;
+	private final Identifier image;
+	private final Size imageSize;
+
+	public ImageWidget(int x, int y, int width, int height, Text altText, Identifier image, TextRenderer font) {
+		super(x, y, width, height, altText);
+		this.font = font;
+		this.image = image;
+		this.imageSize = MarkdownResourceReloadListener.getImageSize(image);
+	}
+
+	@Override
+	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+		context.getMatrices().push();
+		context.fill(getX(), getY(), getX() + width, getY() + height, Colors.CYAN);
+		context.drawTexture(
+			RenderLayer::getGuiTextured,
+			this.image,
+			this.getX(), this.getY(),
+			0f, 0f,
+			this.width, this.height,
+			imageSize.width(), imageSize.height(),
+			imageSize.width(), imageSize.height()
+		);
+
+		if (isMouseOver(mouseX, mouseY)) {
+			context.drawTooltip(font, getMessage(), mouseX, mouseY);
+		}
+
+		context.getMatrices().pop();
+	}
+
+	@Override
+	public boolean mouseClicked(double mouseX, double mouseY, int button) {
+		return false;
+	}
+
+	@Override
+	protected void appendClickableNarrations(NarrationMessageBuilder builder) {
+
+	}
+}

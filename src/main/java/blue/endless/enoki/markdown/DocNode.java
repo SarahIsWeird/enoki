@@ -1,10 +1,17 @@
 package blue.endless.enoki.markdown;
 
+import blue.endless.enoki.gui.Size;
+import blue.endless.enoki.markdown.attributes.DocImageAttributes;
+import blue.endless.enoki.utils.IntUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.text.OrderedText;
+import net.minecraft.text.MutableText;
+import net.minecraft.util.Identifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import org.commonmark.ext.gfm.strikethrough.Strikethrough;
+import org.commonmark.ext.image.attributes.ImageAttributes;
 import org.commonmark.node.Code;
 import org.commonmark.node.FencedCodeBlock;
 import org.commonmark.node.HardLineBreak;
@@ -23,29 +30,34 @@ import org.commonmark.node.Text;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Function;
 
 @Environment(EnvType.CLIENT)
-public record DocNode(NodeType type, String text, String value, List<DocNode> children) {
+public record DocNode(NodeType type, String text, Object attributes, List<DocNode> children) {
+	private static final Logger NORM_LOGGER = LogManager.getLogger("DocNode/Normalization");
+	
 	public DocNode(NodeType type, List<DocNode> children) {
 		this(type, "", children);
 	}
 	
 	public DocNode(NodeType type, String text, List<DocNode> children) {
-		this(type, text, "", children);
+		this(type, text, null, children);
 	}
 	
-	public OrderedText asText() {
-		List<OrderedText> nodes = new ArrayList<>();
+	public net.minecraft.text.Text asText(NodeStyle outerStyle, Function<NodeType, NodeStyle> styleGetter) {
+		MutableText styledText = net.minecraft.text.Text.empty();
+		NodeStyle style = styleGetter.apply(type).combined(outerStyle);
 		
 		if (text != null && !text.isEmpty()) {
-			nodes.add(net.minecraft.text.Text.literal(text).asOrderedText());
+			MutableText ownText = net.minecraft.text.Text.literal(text).setStyle(style.asStyle());
+			styledText.append(ownText);
 		}
 		
 		for (DocNode node : children) {
-			nodes.add(node.asText());
+			styledText.append(node.asText(style, styleGetter));
 		}
 		
-		return OrderedText.concat(nodes);
+		return styledText;
 	}
 	
 	public void appendInto(StringBuilder builder) {
@@ -85,7 +97,7 @@ public record DocNode(NodeType type, String text, String value, List<DocNode> ch
 			}
 			case HtmlBlock htmlBlock -> new DocNode(NodeType.HTML_BLOCK, htmlBlock.getLiteral(), children);
 			case HtmlInline htmlInline -> new DocNode(NodeType.HTML_INLINE, htmlInline.getLiteral(), children);
-			case Image image -> new DocNode(NodeType.IMAGE, image.getTitle(), image.getDestination(), children);
+			case Image image -> normalizeImageNode(image, children);
 			case IndentedCodeBlock indentedBlock -> new DocNode(NodeType.INDENTED_CODE_BLOCK, indentedBlock.getLiteral(), children);
 			case Link link -> new DocNode(NodeType.LINK, link.getTitle(), link.getDestination(), children);
 			// For now, we skip these. In HTML, this is rendered as an anchor.
@@ -98,6 +110,25 @@ public record DocNode(NodeType type, String text, String value, List<DocNode> ch
 		};
 	}
 	
+	private static DocNode normalizeImageNode(Image image, List<DocNode> children) {
+		Size imageSize = Size.DEFAULT;
+		
+		Node lastChild = image.getLastChild();
+		if (lastChild instanceof ImageAttributes attributes) {
+			int width = IntUtils.parseIntOrDefault(attributes.getAttributes().get("width"), -1);
+			int height = IntUtils.parseIntOrDefault(attributes.getAttributes().get("height"), -1);
+			imageSize = new Size(width, height);
+		}
+
+		Identifier imageLocation = Identifier.tryParse(image.getDestination());
+		if (imageLocation == null) {
+			NORM_LOGGER.warn("Image location {} is not a valid Identifier", image.getDestination());
+		}
+		
+		DocImageAttributes attrs = new DocImageAttributes(imageLocation, imageSize);
+		return new DocNode(NodeType.IMAGE, image.getTitle(), attrs, children);
+	}
+
 	public static List<DocNode> normalizeChildren(Node root) {
 		Node node = root.getFirstChild();
 		List<DocNode> result = new ArrayList<>();

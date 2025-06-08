@@ -15,6 +15,11 @@
 	"license": "MIT",
 	"icon": "assets/enoki/icon.png",
 	"environment": "*",
+	"entrypoints": {
+		"client": [
+			"blue.endless.enoki.EnokiClient"
+		]
+	},
 	"depends": {
 		"fabricloader": ">=0.16.14",
 		"minecraft": "~1.21.5",

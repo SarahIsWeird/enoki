@@ -1,10 +1,13 @@
 package blue.endless.enoki.gui;
 
+import blue.endless.enoki.MarkdownResourceReloadListener;
+import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.LayoutStyle;
 import blue.endless.enoki.markdown.NodeStyle;
 import blue.endless.enoki.markdown.NodeType;
+import blue.endless.enoki.markdown.attributes.DocImageAttributes;
 import blue.endless.enoki.text.WordWrap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -17,16 +20,22 @@ import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ContainerWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
+import net.minecraft.util.Identifier;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+
+import static java.util.Objects.requireNonNull;
 
 @Environment(EnvType.CLIENT)
 public class MarkdownWidget extends ContainerWidget {
+	private static final Logger LOGGER = LogManager.getLogger(MarkdownWidget.class);
+	
 	private DocNode document;
 	private final WordWrap wordWrap;
 	private TextRenderer font;
@@ -53,7 +62,7 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	public void setFont(TextRenderer font) {
-		this.font = Objects.requireNonNull(font);
+		this.font = requireNonNull(font);
 		this.rebuildWidgets();
 	}
 	
@@ -156,7 +165,12 @@ public class MarkdownWidget extends ContainerWidget {
 			nodeText = "\u2022 " + nodeText;
 		}
 
-		Position nextPosition = buildInlineText(position, newStyle, nodeText, context);
+		Position nextPosition;
+		if (node.type() == NodeType.IMAGE) {
+			return buildImage(position, context, newStyle, node);
+		} else {
+			nextPosition = buildInlineText(position, newStyle, nodeText, context);
+		}
 		
 		BlockContext innerContext = context;
 		if (node.type() == NodeType.LIST_ITEM) {
@@ -177,6 +191,41 @@ public class MarkdownWidget extends ContainerWidget {
 		}
 		
 		return nextPosition;
+	}
+	
+	private Position buildImage(Position position, BlockContext context, NodeStyle style, DocNode node) {
+		if (position.x() != context.x()) {
+			position = Position.of(context.x(), position.y() + style.applyScale(font.fontHeight));
+		}
+		
+		if (!(node.attributes() instanceof DocImageAttributes attributes)) {
+			throw new IllegalStateException("Expected image attributes to be instanceof DocImageAttributes");
+		}
+
+		Identifier imageId = attributes.imageId();
+		if (imageId == null) return position;
+		
+		Size childSize = getImageSize(attributes, context, style, imageId);
+
+		Text altText = node.asText(NodeStyle.NORMAL,
+			(type) -> layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT).style());
+
+		ClickableWidget child = new ImageWidget(position.x(), position.y(), childSize.width(), childSize.height(), altText, imageId, font);
+		this.children.add(child);
+		
+		return Position.of(context.x(), position.y() + childSize.height());
+	}
+	
+	private Size getImageSize(DocImageAttributes attributes, BlockContext context, NodeStyle style, Identifier imageId) {
+		int width = attributes.size().width();
+		int height = attributes.size().height();
+		
+		if (width != -1 && height != -1) {
+			return attributes.size();
+		}
+
+		// FIXME: Aspect ratio stuff
+		return MarkdownResourceReloadListener.getImageSize(imageId).scale(style.size());
 	}
 	
 	private Position buildInlineText(Position position, NodeStyle style, String nodeText, BlockContext context) {

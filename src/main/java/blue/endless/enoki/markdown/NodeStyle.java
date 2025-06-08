@@ -135,7 +135,7 @@ public record NodeStyle(float size, int color, byte style) {
 	
 	public int applyScale(int value) {
 		return value;
-		// return (int) (value * size);
+		// return (int) (attributes * size);
 	}
 	
 	public int getTextWidth(String string, TextRenderer font) {

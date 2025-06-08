@@ -9,6 +9,7 @@ import net.minecraft.text.Text;
 
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
+import org.commonmark.ext.image.attributes.ImageAttributesExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 
@@ -16,7 +17,9 @@ import java.util.List;
 
 @Environment(EnvType.CLIENT)
 public class TestScreen extends Screen {
-	private static final List<Extension> EXTENSIONS = List.of(StrikethroughExtension.create());
+	private static final List<Extension> EXTENSIONS = List.of(
+		StrikethroughExtension.create(),
+		ImageAttributesExtension.create());
 	private static final Parser PARSER = Parser.builder().extensions(EXTENSIONS).build();
 	
 	public TestScreen() {
@@ -29,9 +32,13 @@ public class TestScreen extends Screen {
 		clearChildren();
 		
 		MarkdownWidget markdownWidget = new MarkdownWidget(50, 50, width - 100, height - 100, true);
+		
+		@SuppressWarnings("MarkdownUnresolvedFileReference")
 		Node rawDocument = PARSER.parse("""
 				# Hello, world! *:3*
 				This is a test.
+				
+				![This is just a *little* goober.](enoki_test:textures/markdown_images/goober.png){width=300 height=200}
 				
 				Anyways, this is a *real* long line to test out how it behaves when trying to wrap stuff.
 				Throw in a line break just for good measure, which it should be fine with?
@@ -50,8 +57,6 @@ public class TestScreen extends Screen {
 				**D**
 				
 				E""");
-		
-		
 		
 		DocNode document = DocNode.of(rawDocument);
 		markdownWidget.setDocument(document);
