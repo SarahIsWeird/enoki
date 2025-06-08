@@ -10,20 +10,20 @@ public enum ScreenAxis {
 	HORIZONTAL(1, 0),
 	VERTICAL(0, 1);
 	
-	private final int xofs;
-	private final int yofs;
+	private final int xOffset;
+	private final int yOffset;
 	
-	ScreenAxis(int xofs, int yofs) {
-		this.xofs = xofs;
-		this.yofs = yofs;
+	ScreenAxis(int xOffset, int yOffset) {
+		this.xOffset = xOffset;
+		this.yOffset = yOffset;
 	}
 	
 	public int xOffset() {
-		return this.xofs;
+		return this.xOffset;
 	}
 	
 	public int yOffset() {
-		return this.yofs;
+		return this.yOffset;
 	}
 	
 	public Position orientCoordinates(int primaryAxis, int crossAxis) {

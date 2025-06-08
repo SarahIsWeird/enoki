@@ -1,12 +1,12 @@
 package blue.endless.enoki.text;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import blue.endless.enoki.gui.Position;
 import net.minecraft.client.gui.ScreenPos;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.widget.Widget;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Lays out flow (non-block) elements along a line. Can be reused for multiple lines.
@@ -31,15 +31,15 @@ import net.minecraft.client.gui.widget.Widget;
  * Finally, call the layout and advance the position:
  * <pre><code>
  * ScreenRect layoutRect = layout.layout();
- * layout.advanceLine(layoutRect);
- * </pre></code>
+ * layout.advanceLine(layoutRect);</pre></code>
  * 
  * Now the widgets are positioned along the line, and the layout is ready to assemble the next line.
  */
 public class LineLayout {
-	protected Position startPosition = new Position(0,0);
-	protected int availableOnPrimaryAxis = 0;
-	protected ScreenAxis axis = ScreenAxis.HORIZONTAL;
+	protected Position startPosition;
+	protected int availableOnPrimaryAxis;
+	protected ScreenAxis axis;
+	
 	protected List<Widget> tray = new ArrayList<>();
 	protected int sizeSoFar = 0;
 	protected int additionalPadding = 0;
@@ -86,8 +86,6 @@ public class LineLayout {
 	
 	/**
 	 * Sets the start position - the top left corner of the eventual layout box for this line.
-	 * @param pos
-	 * @return
 	 */
 	public LineLayout setStartPosition(Position pos) {
 		this.startPosition = pos;
@@ -129,7 +127,7 @@ public class LineLayout {
 	/**
 	 * Gets the amount of space on this line that has not been laid out along its primary axis.
 	 * 
-	 * <p>NOTE: This method is really for advanced use cases, and where possible, {@link #canFit(ClickableWidget)}
+	 * <p>NOTE: This method is really for advanced use cases, and where possible, {@link #canFit(Widget)}
 	 * should be used instead, as that ensures that not only can the component be inserted, but that it can be inserted
 	 * without violating any invariants (such as padding between components).
 	 * @return The amount of "free space", in layout pixels.
