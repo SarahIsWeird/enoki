@@ -43,7 +43,15 @@ public class TestScreen extends Screen {
 					- Wowie
 				- Minecraft's text renderer
 				
-				## Okay""");
+				## Okay
+				
+				A b c
+				
+				**D**
+				
+				E""");
+		
+		
 		
 		DocNode document = DocNode.of(rawDocument);
 		markdownWidget.setDocument(document);

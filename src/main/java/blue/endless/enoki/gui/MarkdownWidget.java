@@ -5,6 +5,7 @@ import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.LayoutStyle;
 import blue.endless.enoki.markdown.NodeStyle;
 import blue.endless.enoki.markdown.NodeType;
+import blue.endless.enoki.text.WordWrap;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;

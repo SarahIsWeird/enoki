@@ -1,4 +1,4 @@
-package blue.endless.enoki.gui;
+package blue.endless.enoki.text;
 
 import blue.endless.enoki.markdown.NodeStyle;
 import net.fabricmc.api.EnvType;
