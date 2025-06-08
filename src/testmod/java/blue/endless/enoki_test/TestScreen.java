@@ -1,5 +1,6 @@
 package blue.endless.enoki_test;
 
+import blue.endless.enoki.Enoki;
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.markdown.DocNode;
 import net.fabricmc.api.EnvType;
@@ -7,24 +8,10 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 
-import com.sarahisweird.commonmark.ext.image_attributes.ImageAttributesExtension;
-import org.commonmark.Extension;
-import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
 import org.commonmark.node.Node;
-import org.commonmark.parser.Parser;
-
-import java.util.List;
-import java.util.Set;
 
 @Environment(EnvType.CLIENT)
 public class TestScreen extends Screen {
-	private static final List<Extension> EXTENSIONS = List.of(
-		StrikethroughExtension.create(),
-		ImageAttributesExtension.create(Set.of("width", "height", "fill", "inline"), Set.of("fill", "inline"))
-	);
-	
-	private static final Parser PARSER = Parser.builder().extensions(EXTENSIONS).build();
-	
 	public TestScreen() {
 		super(Text.of("Test"));
 	}
@@ -37,7 +24,7 @@ public class TestScreen extends Screen {
 		MarkdownWidget markdownWidget = new MarkdownWidget(50, 50, width - 100, height - 100, true);
 		
 		@SuppressWarnings("MarkdownUnresolvedFileReference")
-		Node rawDocument = PARSER.parse("""
+		Node rawDocument = Enoki.DEFAULT_PARSER.parse("""
 				# Hello, world! *:3*
 				This is a test. ![You rock!](minecraft:textures/block/bedrock.png){width=8 height=8 inline} <-- yooo!
 				
