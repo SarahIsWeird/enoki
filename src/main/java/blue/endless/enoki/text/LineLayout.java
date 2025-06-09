@@ -119,7 +119,7 @@ public class LineLayout {
 	public void advanceLine(ScreenRect rect) {
 		clearLine();
 		int primaryPosition = startPosition.get(axis); // Stays the same for each line
-		int advanceSize = axis.opposite().select(rect.getLeft(), rect.getTop());
+		int advanceSize = axis.opposite().select(rect.width(), rect.height());
 		int newCrossPosition = startPosition.get(axis.opposite()) + advanceSize;
 		startPosition = axis.orientCoordinates(primaryPosition, newCrossPosition);
 	}
