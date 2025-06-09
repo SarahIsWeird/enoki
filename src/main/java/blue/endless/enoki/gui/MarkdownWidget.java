@@ -1,6 +1,6 @@
 package blue.endless.enoki.gui;
 
-import blue.endless.enoki.MarkdownResourceReloadListener;
+import blue.endless.enoki.resources.MarkdownResources;
 import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
 import blue.endless.enoki.markdown.DocNode;
@@ -25,6 +25,7 @@ import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -63,12 +64,28 @@ public class MarkdownWidget extends ContainerWidget {
 		this.scrollable = scrollable;
 	}
 	
+	public MarkdownWidget(int x, int y, int width, int height, boolean scrollable, Identifier documentId) {
+		this(x, y, width, height, scrollable);
+		
+		this.setDocument(documentId);
+	}
+	
 	public void setFont(TextRenderer font) {
 		this.font = requireNonNull(font);
 		this.rebuildWidgets();
 	}
 	
-	public void setDocument(DocNode document) {
+	public void setDocument(@NotNull Identifier documentId) {
+		DocNode document = MarkdownResources.getDocumentOrFallback(documentId);
+		if (document == null) {
+			LOGGER.error("Could not find document id {}!", documentId);
+			return;
+		}
+		
+		this.setDocument(document);
+	}
+	
+	public void setDocument(@NotNull DocNode document) {
 		this.document = document;
 		this.rebuildWidgets();
 	}
@@ -252,7 +269,7 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	public static Size getActualImageSize(Identifier imageId) {
-		Size size = MarkdownResourceReloadListener.getImageSize(imageId);
+		Size size = MarkdownResources.getImageSize(imageId);
 		if (size != null) return size;
 		
 		try {
