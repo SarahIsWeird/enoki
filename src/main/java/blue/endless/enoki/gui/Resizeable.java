@@ -11,37 +11,37 @@ public interface Resizeable {
 	 * Gets the current width of this Widget
 	 * @return the width of this Widget, in layout pixels.
 	 */
-	public int getWidth();
+	int getWidth();
 	
 	/**
 	 * Gets the current height of this Widget
 	 * @return the height of this Widget, in layout pixels.
 	 */
-	public int getHeight();
+	int getHeight();
 	
 	/**
 	 * Sets the width of this widget. May not be negative.
 	 * @param width a new concrete width for this Widget.
 	 */
-	public void setWidth(int width);
+	void setWidth(int width);
 	
 	/**
 	 * Sets the height of this widget. May not be negative.
 	 * @param height a new concrete height for this Widget.
 	 */
-	public void setHeight(int height);
+	void setHeight(int height);
 	
 	/**
 	 * Asks the Widget to change its size.
 	 * @param width  The new width of the Widget, or -1 to ask the Widget to select an appropriate size.
 	 * @param height The new height of the Widget, or -1 to ask the Widget to select an appropriate size.
 	 */
-	public default void setSize(int width, int height) {
+	default void setSize(int width, int height) {
 		if (width != -1) this.setWidth(width);
 		if (height != -1) this.setHeight(height);
 	}
 	
-	public default void setSize(Size size) {
+	default void setSize(Size size) {
 		setSize(size.width(), size.height());
 	}
 }
