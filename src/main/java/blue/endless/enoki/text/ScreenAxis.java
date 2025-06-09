@@ -1,6 +1,7 @@
 package blue.endless.enoki.text;
 
 import blue.endless.enoki.gui.Position;
+import blue.endless.enoki.gui.Size;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.widget.Widget;
@@ -30,6 +31,13 @@ public enum ScreenAxis {
 		return switch(this) {
 			case HORIZONTAL -> new Position(primaryAxis, crossAxis);
 			case VERTICAL -> new Position(crossAxis, primaryAxis);
+		};
+	}
+	
+	public Size orientSizes(int primaryAxis, int crossAxis) {
+		return switch(this) {
+			case HORIZONTAL -> new Size(primaryAxis, crossAxis);
+			case VERTICAL -> new Size(crossAxis, primaryAxis);
 		};
 	}
 	

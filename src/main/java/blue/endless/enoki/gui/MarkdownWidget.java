@@ -16,6 +16,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
+import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ContainerWidget;
@@ -109,6 +110,10 @@ public class MarkdownWidget extends ContainerWidget {
 		this.children.clear();
 		Position finalPosition = buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
 		
+		// Terminate the last line if there is one.
+		//ScreenRect rect = contexts.peek().line().layout();
+		//finalPosition = finalPosition.withOffset(0, rect.height());
+		
 		this.contentHeight = finalPosition.y() - this.getY();
 	}
 	
@@ -129,6 +134,14 @@ public class MarkdownWidget extends ContainerWidget {
 		BlockContext context = contexts.peek();
 		if (context == null) return nextPosition;
 		
+		// If we have a line of flow elements pending, terminate it.
+		ScreenRect rect = context.line().layout();
+		nextPosition = nextPosition.withOffset(0, rect.height());
+		context.line().clearLine();
+		
+		//context.line().advanceLine(context.line().layout());
+		//nextPosition = context.line().startPosition();
+		
 		int blockX = context.x() + layout.indent();
 		// TODO: Maybe bump top margin down to after we've figured out the line break behavior
 		int blockY = nextPosition.y() + margins.top();
@@ -146,6 +159,10 @@ public class MarkdownWidget extends ContainerWidget {
 			nextPosition = buildWidgets(child, nextPosition, contexts, newStyle);
 		}
 		
+		// Never flow from an inner block to an outer one.
+		ScreenRect lastInnerLine = innerContext.line().layout();
+		nextPosition = nextPosition.withOffset(0, lastInnerLine.height());
+		
 		contexts.pop();
 		
 		int nextY = nextPosition.y() + margins.bottom();
@@ -153,7 +170,11 @@ public class MarkdownWidget extends ContainerWidget {
 			nextY += newStyle.applyScale(font.fontHeight);
 		}
 		
-		return Position.of(context.x(), nextY);
+		Position result = Position.of(context.x(), nextY);
+		
+		context.line().setStartPosition(result);
+		
+		return result;
 	}
 	
 	private Position buildInlineWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle externalStyle) {
@@ -168,7 +189,7 @@ public class MarkdownWidget extends ContainerWidget {
 		if (node.type() == NodeType.LIST_ITEM) {
 			nodeText = "\u2022 " + nodeText;
 		}
-
+		
 		Position nextPosition;
 		if (node.type() == NodeType.IMAGE) {
 			return buildImage(position, context, newStyle, node);
@@ -238,6 +259,7 @@ public class MarkdownWidget extends ContainerWidget {
 			GpuTexture texture = MinecraftClient.getInstance().getTextureManager().getTexture(imageId).getGlTexture();
 			return new Size(texture.getWidth(0),  texture.getHeight(0));
 		} catch (IllegalStateException e) {
+			// FIXME: This will cause an NPE further away from the point of failure. This should either be a re-throw of a runtime error, or a default/zero size.
 			return null;
 		}
 	}

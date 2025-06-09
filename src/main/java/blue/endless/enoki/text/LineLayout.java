@@ -1,7 +1,7 @@
 package blue.endless.enoki.text;
 
 import blue.endless.enoki.gui.Position;
-import net.minecraft.client.gui.ScreenPos;
+import blue.endless.enoki.gui.Size;
 import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.widget.Widget;
 
@@ -147,6 +147,10 @@ public class LineLayout {
 		return availableOnPrimaryAxis - totalSpace;
 	}
 	
+	public Position startPosition() {
+		return startPosition;
+	}
+	
 	/**
 	 * Returns true if the provided widget can be inserted into this line without extending outside the layout area.
 	 * @param widget the widget to measure, and possibly add.
@@ -174,6 +178,8 @@ public class LineLayout {
 	 *         the line.
 	 */
 	public ScreenRect layout() {
+		if (tray.isEmpty()) return new ScreenRect(startPosition.asScreenPos(), 0, 0);
+		
 		// Figure out how much space we have to effect the layout
 		int primaryAxisSize = 0;
 		int crossAxisSize = 0;
@@ -217,7 +223,7 @@ public class LineLayout {
 		}
 		
 		// Report the area we actually occupied in this layout - most crucially the height of this rectangle (if we're laying out HORIZONTAL)
-		Position size = axis.orientCoordinates(lastComponentAdvance, crossAxisSize);
-		return new ScreenRect(new ScreenPos(startPosition.x(), startPosition.y()), size.x(), size.y());
+		Size size = axis.orientSizes(lastComponentAdvance, crossAxisSize);
+		return new ScreenRect(startPosition.asScreenPos(), size.width(), size.height());
 	}
 }

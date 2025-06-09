@@ -3,6 +3,7 @@ package blue.endless.enoki.gui;
 import blue.endless.enoki.text.ScreenAxis;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import net.minecraft.client.gui.ScreenPos;
 
 @Environment(EnvType.CLIENT)
 public record Position(int x, int y) {
@@ -28,5 +29,9 @@ public record Position(int x, int y) {
 				axis.xOffset() * distance + x,
 				axis.yOffset() * distance + y
 				);
+	}
+	
+	public ScreenPos asScreenPos() {
+		return new ScreenPos(x, y);
 	}
 }

@@ -1,6 +1,7 @@
 package blue.endless.enoki.gui.widgets;
 
 import blue.endless.enoki.gui.MarkdownWidget;
+import blue.endless.enoki.gui.Resizeable;
 import blue.endless.enoki.gui.Size;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -11,7 +12,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
 
-public class ImageWidget extends ClickableWidget {
+public class ImageWidget extends ClickableWidget implements Resizeable {
 	private final TextRenderer font;
 	private final Identifier image;
 	private final Size imageSize;
