@@ -8,11 +8,18 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.util.Identifier;
+
 import org.lwjgl.glfw.GLFW;
+
+import blue.endless.enoki.EnokiClient;
+import blue.endless.enoki.markdown.DocNode;
+import blue.endless.enoki.resource.LocalizedResourceManager;
 
 @Environment(EnvType.CLIENT)
 public final class EnokiTestClient implements ClientModInitializer {
 	private KeyBinding keyBinding;
+	public static LocalizedResourceManager<DocNode> MARKDOWN_RESOURCES;
 	
 	@Override
 	public void onInitializeClient() {
@@ -28,5 +35,8 @@ public final class EnokiTestClient implements ClientModInitializer {
 				MinecraftClient.getInstance().setScreen(new TestScreen());
 			}
 		});
+		
+		
+		MARKDOWN_RESOURCES = EnokiClient.registerResourceManager(Identifier.of("enoki_test:markdown"));
 	}
 }

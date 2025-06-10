@@ -1,6 +1,5 @@
 package blue.endless.enoki.gui;
 
-import blue.endless.enoki.resources.MarkdownResources;
 import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
 import blue.endless.enoki.markdown.DocNode;
@@ -64,18 +63,21 @@ public class MarkdownWidget extends ContainerWidget {
 		this.scrollable = scrollable;
 	}
 	
+	/*
 	public MarkdownWidget(int x, int y, int width, int height, boolean scrollable, Identifier documentId) {
 		this(x, y, width, height, scrollable);
 		
 		this.setDocument(documentId);
-	}
+	}*/
 	
 	public void setFont(TextRenderer font) {
 		this.font = requireNonNull(font);
 		this.rebuildWidgets();
 	}
 	
+	/*
 	public void setDocument(@NotNull Identifier documentId) {
+		Optional<DocNode> document = EnokiClient.MARKDOWN_RESOURCES.get(documentId);
 		DocNode document = MarkdownResources.getDocumentOrFallback(documentId);
 		if (document == null) {
 			LOGGER.error("Could not find document id {}!", documentId);
@@ -83,7 +85,7 @@ public class MarkdownWidget extends ContainerWidget {
 		}
 		
 		this.setDocument(document);
-	}
+	}*/
 	
 	public void setDocument(@NotNull DocNode document) {
 		this.document = document;
@@ -269,15 +271,11 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	public static Size getActualImageSize(Identifier imageId) {
-		Size size = MarkdownResources.getImageSize(imageId);
-		if (size != null) return size;
-		
 		try {
-			GpuTexture texture = MinecraftClient.getInstance().getTextureManager().getTexture(imageId).getGlTexture();
-			return new Size(texture.getWidth(0),  texture.getHeight(0));
-		} catch (IllegalStateException e) {
-			// FIXME: This will cause an NPE further away from the point of failure. This should either be a re-throw of a runtime error, or a default/zero size.
-			return null;
+			GpuTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(imageId).getGlTexture();
+			return new Size(tex.getWidth(0), tex.getHeight(0));
+		} catch (IllegalStateException ex) {
+			return new Size(0,0);
 		}
 	}
 	
@@ -305,10 +303,14 @@ public class MarkdownWidget extends ContainerWidget {
 			int incomingIndent = nextPosition.x() - context.x();
 			int availableLineWidth = context.width() - incomingIndent;
 			
+			//int availableLineWidth = context.line().remainingSpacePlusPadding();
+			//System.out.println("Available width - Line: "+availableLineWidth+" Calc: "+(context.width() - incomingIndent));
+			
 			String nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style);
 			lastLine = Text.literal(nextLine).setStyle(style.asStyle());
 			
 			ClickableWidget child = new TextSpanWidget(nextPosition.x(), nextPosition.y(), lastLine, style, this.font);
+			//context.line().add(child);
 			this.children.add(child);
 
 			// TODO: Check if just stripping spaces (and tabs?) is enough

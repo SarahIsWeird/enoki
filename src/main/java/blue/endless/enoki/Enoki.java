@@ -2,6 +2,7 @@ package blue.endless.enoki;
 
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.markdown.DocNode;
+import blue.endless.enoki.resource.ResourceDecoder;
 
 import com.sarahisweird.commonmark.ext.image_attributes.ImageAttributesExtension;
 import org.commonmark.Extension;
@@ -9,7 +10,9 @@ import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
 import org.commonmark.node.Node;
 import org.commonmark.parser.Parser;
 
+import java.io.Reader;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public class Enoki {
@@ -42,7 +45,14 @@ public class Enoki {
 	public static final Parser DEFAULT_PARSER = Parser.builder()
 		.extensions(DEFAULT_EXTENSIONS)
 		.build();
-
+	
+	public static final ResourceDecoder<DocNode> DEFAULT_DECODER = (id, res) -> {
+			try(Reader reader = res.getReader()) {
+				Node node = Enoki.DEFAULT_PARSER.parseReader(reader);
+				return Optional.of(DocNode.of(node));
+			}
+		};
+	
 	/**
 	 * Utility method that turns a Markdown document into a DocNode for use with a {@link MarkdownWidget}.
 	 * 
