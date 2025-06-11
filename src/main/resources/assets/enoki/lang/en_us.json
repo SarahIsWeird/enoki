@@ -1,0 +1,7 @@
+{
+	"enoki.md.block_quote.note": "Note",
+	"enoki.md.block_quote.tip": "Tip",
+	"enoki.md.block_quote.important": "Important",
+	"enoki.md.block_quote.warning": "Warning",
+	"enoki.md.block_quote.caution": "Caution"
+}

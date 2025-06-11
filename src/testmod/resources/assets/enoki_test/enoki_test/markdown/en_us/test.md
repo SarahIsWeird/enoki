@@ -13,8 +13,20 @@ A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strip
 > 
 > Of course, I wrote my thesis about him!
 
+> [!NOTE]
+> Remember to do the thing.
+
+> [!TIP]
+> Do the thing for easier doing!
+
+> [!IMPORTANT]
+> Before doing the thing, check if the thing can be done.
+
 > [!WARNING]
 > Don't do the thing!
+
+> [!CAUTION]
+> Don't do the thing if it can't be done.
 
 Things I hate:
 - Minecraft's text rendering

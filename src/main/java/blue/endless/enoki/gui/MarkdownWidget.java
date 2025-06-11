@@ -1,13 +1,16 @@
 package blue.endless.enoki.gui;
 
-import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
 import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
+import blue.endless.enoki.gui.widgets.quote.BlockQuoteInfo;
+import blue.endless.enoki.gui.widgets.quote.BlockQuoteTitleWidget;
+import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.LayoutStyle;
 import blue.endless.enoki.markdown.NodeStyle;
 import blue.endless.enoki.markdown.NodeType;
 import blue.endless.enoki.markdown.attributes.DocImageAttributes;
+import blue.endless.enoki.text.ScreenAxis;
 import blue.endless.enoki.text.WordWrap;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.fabricmc.api.EnvType;
@@ -30,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -54,9 +56,6 @@ public class MarkdownWidget extends ContainerWidget {
 			NodeType.BLOCK_QUOTE, LayoutStyle.BLOCK_QUOTE
 			);
 	
-	private int defaultAlertColor = Colors.LIGHT_GRAY;
-	private Map<String, Integer> alertColors;
-	
 	private List<ClickableWidget> currentChildren = new ArrayList<>();
 	private final boolean scrollable;
 	private int contentHeight;
@@ -67,13 +66,6 @@ public class MarkdownWidget extends ContainerWidget {
 		this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
 		this.scrollable = scrollable;
-
-		this.alertColors = new HashMap<>();
-		this.alertColors.put("NOTE", Colors.BLUE);
-		this.alertColors.put("TIP", Colors.GREEN);
-		this.alertColors.put("IMPORTANT", Colors.PURPLE);
-		this.alertColors.put("WARNING", Colors.YELLOW);
-		this.alertColors.put("ERROR", Colors.RED);
 	}
 	
 	/*
@@ -214,13 +206,25 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	private Position buildBlockWidget(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
+		// FIXME: Add padding to some better place (possibly LayoutStyle?)
+		final int VERTICAL_PADDING = 2;
+		
 		List<ClickableWidget> previousChildren = this.currentChildren;
 		this.currentChildren = new ArrayList<>();
 
 		BlockContext outerContext = contexts.peek();
 		assert outerContext != null; // Can't be null, since buildBlockWidgets will always push one for us.
+		
+		Position nextPosition = position.withOffset(ScreenAxis.VERTICAL, VERTICAL_PADDING);
 
-		Position nextPosition = buildChildren(node, position, contexts, style);
+		BlockQuoteInfo info = BlockQuoteInfo.of((String) node.attributes());
+		if (!info.equals(BlockQuoteInfo.DEFAULT)) {
+			BlockQuoteTitleWidget titleWidget = new BlockQuoteTitleWidget(nextPosition.x(), nextPosition.y(), info, this.font);
+			this.currentChildren.add(titleWidget);
+			nextPosition = nextPosition.withOffset(ScreenAxis.VERTICAL, style.applyScale(titleWidget.getHeight() + font.fontHeight));
+		}
+
+		nextPosition = buildChildren(node, nextPosition, contexts, style);
 		
 		ClickableWidget lastChild = this.currentChildren.isEmpty() ? null : this.currentChildren.getLast();
 		if (lastChild == null) {
@@ -231,11 +235,10 @@ public class MarkdownWidget extends ContainerWidget {
 		
 		// There might be extraneous margins left over at the end. That looks ugly, so we calculate
 		// the real size of the quote block and use that.
-		int blockHeight = (lastChild.getY() + lastChild.getHeight()) - position.y();
+		int blockHeight = (lastChild.getY() + lastChild.getHeight()) - position.y() + VERTICAL_PADDING;
 		nextPosition = Position.of(nextPosition.x(), outerContext.y() + blockHeight);
 		
-		int quoteColor = this.alertColors.getOrDefault((String) node.attributes(), this.defaultAlertColor);
-		BlockQuoteWidget widget = new BlockQuoteWidget(position.x(), position.y(), outerContext.width(), blockHeight, quoteColor, this.currentChildren);
+		BlockQuoteWidget widget = new BlockQuoteWidget(position.x(), position.y(), outerContext.width(), blockHeight, info.color(), this.currentChildren);
 		this.currentChildren = previousChildren;
 		this.currentChildren.add(widget);
 		
