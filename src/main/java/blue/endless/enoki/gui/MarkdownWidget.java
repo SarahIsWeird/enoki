@@ -1,5 +1,6 @@
 package blue.endless.enoki.gui;
 
+import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
 import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
 import blue.endless.enoki.markdown.DocNode;
@@ -29,6 +30,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -48,10 +50,14 @@ public class MarkdownWidget extends ContainerWidget {
 			NodeType.STRONG_EMPHASIS, LayoutStyle.BOLD,
 			NodeType.STRIKETHROUGH, LayoutStyle.STRIKETHROUGH,
 			NodeType.UNDERLINE, LayoutStyle.UNDERLINE,
-			NodeType.PARAGRAPH, LayoutStyle.PARAGRAPH
+			NodeType.PARAGRAPH, LayoutStyle.PARAGRAPH,
+			NodeType.BLOCK_QUOTE, LayoutStyle.BLOCK_QUOTE
 			);
 	
-	private final List<ClickableWidget> children = new ArrayList<>();
+	private int defaultAlertColor = Colors.LIGHT_GRAY;
+	private Map<String, Integer> alertColors;
+	
+	private List<ClickableWidget> currentChildren = new ArrayList<>();
 	private final boolean scrollable;
 	private int contentHeight;
 	
@@ -61,6 +67,13 @@ public class MarkdownWidget extends ContainerWidget {
 		this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
 		this.scrollable = scrollable;
+
+		this.alertColors = new HashMap<>();
+		this.alertColors.put("NOTE", Colors.BLUE);
+		this.alertColors.put("TIP", Colors.GREEN);
+		this.alertColors.put("IMPORTANT", Colors.PURPLE);
+		this.alertColors.put("WARNING", Colors.YELLOW);
+		this.alertColors.put("ERROR", Colors.RED);
 	}
 	
 	/*
@@ -107,7 +120,7 @@ public class MarkdownWidget extends ContainerWidget {
 			dc.getMatrices().translate(0, -getScrollY(), 0);
 		}
 		
-		for (ClickableWidget child : children) {
+		for (ClickableWidget child : currentChildren) {
 			child.render(dc, mouseX, mouseY, deltaTicks);
 		}
 		
@@ -126,7 +139,7 @@ public class MarkdownWidget extends ContainerWidget {
 		Deque<BlockContext> contexts = new ArrayDeque<>();
 		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
 
-		this.children.clear();
+		this.currentChildren.clear();
 		Position finalPosition = buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
 		
 		// Terminate the last line if there is one.
@@ -174,8 +187,12 @@ public class MarkdownWidget extends ContainerWidget {
 		contexts.push(innerContext);
 		nextPosition = Position.of(blockX, blockY);
 		
-		for (DocNode child : node.children()) {
-			nextPosition = buildWidgets(child, nextPosition, contexts, newStyle);
+		if (node.type() == NodeType.BLOCK_QUOTE) {
+			nextPosition = buildBlockWidget(node, nextPosition, contexts, newStyle);
+		} else {
+			for (DocNode child : node.children()) {
+				nextPosition = buildWidgets(child, nextPosition, contexts, newStyle);
+			}
 		}
 		
 		// Never flow from an inner block to an outer one.
@@ -194,6 +211,43 @@ public class MarkdownWidget extends ContainerWidget {
 		context.line().setStartPosition(result);
 		
 		return result;
+	}
+	
+	private Position buildBlockWidget(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
+		List<ClickableWidget> previousChildren = this.currentChildren;
+		this.currentChildren = new ArrayList<>();
+
+		BlockContext outerContext = contexts.peek();
+		assert outerContext != null; // Can't be null, since buildBlockWidgets will always push one for us.
+
+		Position nextPosition = buildChildren(node, position, contexts, style);
+		
+		ClickableWidget lastChild = this.currentChildren.isEmpty() ? null : this.currentChildren.getLast();
+		if (lastChild == null) {
+			// We don't need an empty widget.
+			this.currentChildren = previousChildren;
+			return nextPosition;
+		}
+		
+		// There might be extraneous margins left over at the end. That looks ugly, so we calculate
+		// the real size of the quote block and use that.
+		int blockHeight = (lastChild.getY() + lastChild.getHeight()) - position.y();
+		nextPosition = Position.of(nextPosition.x(), outerContext.y() + blockHeight);
+		
+		int quoteColor = this.alertColors.getOrDefault((String) node.attributes(), this.defaultAlertColor);
+		BlockQuoteWidget widget = new BlockQuoteWidget(position.x(), position.y(), outerContext.width(), blockHeight, quoteColor, this.currentChildren);
+		this.currentChildren = previousChildren;
+		this.currentChildren.add(widget);
+		
+		return nextPosition;
+	}
+	
+	private Position buildChildren(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
+		for (DocNode child : node.children()) {
+			position = buildWidgets(child, position, contexts, style);
+		}
+		
+		return position;
 	}
 	
 	private Position buildInlineWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle externalStyle) {
@@ -259,7 +313,7 @@ public class MarkdownWidget extends ContainerWidget {
 			(type) -> layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT).style());
 
 		ClickableWidget child = new ImageWidget(position.x(), position.y(), childSize.width(), childSize.height(), altText, imageId, font);
-		this.children.add(child);
+		this.currentChildren.add(child);
 		
 		Position nextPosition = Position.of(position.x() + childSize.width(), position.y());
 		
@@ -320,7 +374,7 @@ public class MarkdownWidget extends ContainerWidget {
 			
 			ClickableWidget child = new TextSpanWidget(nextPosition.x(), nextPosition.y(), lastLine, style, this.font);
 			//context.line().add(child);
-			this.children.add(child);
+			this.currentChildren.add(child);
 
 			// TODO: Check if just stripping spaces (and tabs?) is enough
 			remainingText = remainingText.substring(nextLine.length()).stripLeading();
@@ -350,6 +404,6 @@ public class MarkdownWidget extends ContainerWidget {
 
 	@Override
 	public List<? extends Element> children() {
-		return this.children;
+		return this.currentChildren;
 	}
 }

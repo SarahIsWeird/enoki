@@ -9,8 +9,10 @@ import net.minecraft.util.Identifier;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import com.sarahisweird.commonmark.ext.alerts.Alert;
 import com.sarahisweird.commonmark.ext.image_attributes.ImageAttributes;
 import org.commonmark.ext.gfm.strikethrough.Strikethrough;
+import org.commonmark.node.BlockQuote;
 import org.commonmark.node.Code;
 import org.commonmark.node.FencedCodeBlock;
 import org.commonmark.node.HardLineBreak;
@@ -84,6 +86,8 @@ public record DocNode(NodeType type, String text, Object attributes, List<DocNod
 		return switch (node) {
 			case Text text -> new DocNode(NodeType.TEXT, text.getLiteral(), children);
 			case Code code -> new DocNode(NodeType.CODE, code.getLiteral(), children);
+			case BlockQuote ignored -> new DocNode(NodeType.BLOCK_QUOTE, "", null, children);
+			case Alert alert -> new DocNode(NodeType.BLOCK_QUOTE, "", alert.getAlertType(), children);
 			case FencedCodeBlock fencedBlock -> new DocNode(NodeType.FENCED_CODE_BLOCK, fencedBlock.getLiteral(), fencedBlock.getInfo(), children);
 			case HardLineBreak ignored -> new DocNode(NodeType.HARD_LINE_BREAK, "\n", children);
 			case Heading heading -> {

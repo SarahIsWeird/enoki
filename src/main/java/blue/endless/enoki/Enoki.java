@@ -4,6 +4,7 @@ import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.resource.ResourceDecoder;
 
+import com.sarahisweird.commonmark.ext.alerts.AlertExtension;
 import com.sarahisweird.commonmark.ext.image_attributes.ImageAttributesExtension;
 import org.commonmark.Extension;
 import org.commonmark.ext.gfm.strikethrough.StrikethroughExtension;
@@ -31,7 +32,8 @@ public class Enoki {
 	 */
 	public static final List<Extension> DEFAULT_EXTENSIONS = List.of(
 		StrikethroughExtension.create(),
-		ImageAttributesExtension.create(Set.of("width", "height", "fill", "inline"), Set.of("fill", "inline"))
+		ImageAttributesExtension.create(Set.of("width", "height", "fill", "inline"), Set.of("fill", "inline")),
+		AlertExtension.create()
 	);
 
 	/**

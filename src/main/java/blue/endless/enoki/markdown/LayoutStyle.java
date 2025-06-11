@@ -48,4 +48,5 @@ public record LayoutStyle(NodeStyle style, int indent, Margins margins) {
 	public static LayoutStyle STRIKETHROUGH = new LayoutStyle(NodeStyle.NORMAL.withStrikethrough(), 0, Margins.ZERO);
 	public static LayoutStyle UNDERLINE = new LayoutStyle(NodeStyle.NORMAL.withUnderline(), 0, Margins.ZERO);
 	public static LayoutStyle PARAGRAPH = new LayoutStyle(NodeStyle.NORMAL, 0, Margins.PAD_BELOW);
+	public static LayoutStyle BLOCK_QUOTE = new LayoutStyle(NodeStyle.NORMAL, 8, Margins.ZERO);
 }
