@@ -9,6 +9,8 @@ import net.minecraft.client.font.TextRenderer;
 import java.text.BreakIterator;
 import java.util.Locale;
 
+import org.jetbrains.annotations.Nullable;
+
 @Environment(EnvType.CLIENT)
 public class WordWrap {
 	private final BreakIterator breaks;
@@ -36,6 +38,26 @@ public class WordWrap {
 		while (style.getTextWidth(firstLine, font) > width) {
 			pos = breaks.previous();
 			if (pos == BreakIterator.DONE) return hardWrap(font, width, firstLine, style);
+			firstLine = firstLine.substring(0, pos);
+		}
+		
+		return firstLine;
+	}
+	
+	public @Nullable String getCleanFirstLine(TextRenderer font, int width, String text, NodeStyle style) {
+		int totalWidth = style.getTextWidth(text, font);
+		if (totalWidth <= width) return text;
+		
+		String firstLine = text;
+		breaks.setText(text);
+		
+		int pos = breaks.last();
+		if (pos == BreakIterator.DONE) return null;
+		firstLine = firstLine.substring(0, pos);
+		
+		while (style.getTextWidth(firstLine, font) > width) {
+			pos = breaks.previous();
+			if (pos == BreakIterator.DONE) return null;
 			firstLine = firstLine.substring(0, pos);
 		}
 		

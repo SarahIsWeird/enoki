@@ -273,6 +273,7 @@ public class MarkdownWidget extends ContainerWidget {
 	public static Size getActualImageSize(Identifier imageId) {
 		try {
 			GpuTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(imageId).getGlTexture();
+			System.out.println("Sizeof "+imageId+": "+tex.getWidth(0)+" x "+tex.getHeight(0));
 			return new Size(tex.getWidth(0), tex.getHeight(0));
 		} catch (IllegalStateException ex) {
 			return new Size(0,0);
@@ -307,6 +308,14 @@ public class MarkdownWidget extends ContainerWidget {
 			//System.out.println("Available width - Line: "+availableLineWidth+" Calc: "+(context.width() - incomingIndent));
 			
 			String nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style);
+			/* if (nextLine == null) {
+				ScreenRect rect = context.line().layout();
+				context.line().advanceLine(rect);
+				nextPosition = new Position(context.x(), nextPosition.y() + rect.height());
+				incomingIndent = nextPosition.x() - context.x();
+				availableLineWidth = context.width() - incomingIndent;
+				nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style);
+			} */
 			lastLine = Text.literal(nextLine).setStyle(style.asStyle());
 			
 			ClickableWidget child = new TextSpanWidget(nextPosition.x(), nextPosition.y(), lastLine, style, this.font);
