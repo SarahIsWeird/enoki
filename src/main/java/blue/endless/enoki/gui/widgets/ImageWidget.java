@@ -3,25 +3,29 @@ package blue.endless.enoki.gui.widgets;
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.gui.Resizeable;
 import blue.endless.enoki.gui.Size;
+import blue.endless.enoki.markdown.NodeStyle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
 
-public class ImageWidget extends ClickableWidget implements Resizeable {
+public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 	private final TextRenderer font;
 	private final Identifier image;
 	private final Size imageSize;
 
-	public ImageWidget(int x, int y, int width, int height, Text altText, Identifier image, TextRenderer font) {
-		super(x, y, width, height, altText);
+	public ImageWidget(int x, int y, int width, int height, Text altText, Identifier image, TextRenderer font, NodeStyle style) {
+		super(x, y, width, height, altText, style);
 		this.font = font;
 		this.image = image;
 		this.imageSize = MarkdownWidget.getActualImageSize(image);
+	}
+
+	@Override
+	protected boolean hasClickBehavior() {
+		return false;
 	}
 
 	@Override
@@ -43,15 +47,5 @@ public class ImageWidget extends ClickableWidget implements Resizeable {
 		}
 
 		context.getMatrices().pop();
-	}
-
-	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		return false;
-	}
-
-	@Override
-	protected void appendClickableNarrations(NarrationMessageBuilder builder) {
-
 	}
 }

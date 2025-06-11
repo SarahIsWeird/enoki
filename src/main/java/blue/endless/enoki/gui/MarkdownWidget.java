@@ -2,6 +2,8 @@ package blue.endless.enoki.gui;
 
 import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
+import blue.endless.enoki.gui.widgets.link.ExternalLinkClickEventHandler;
+import blue.endless.enoki.gui.widgets.link.LinkInfo;
 import blue.endless.enoki.gui.widgets.quote.BlockQuoteInfo;
 import blue.endless.enoki.gui.widgets.quote.BlockQuoteTitleWidget;
 import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
@@ -53,19 +55,17 @@ public class MarkdownWidget extends ContainerWidget {
 			NodeType.STRIKETHROUGH, LayoutStyle.STRIKETHROUGH,
 			NodeType.UNDERLINE, LayoutStyle.UNDERLINE,
 			NodeType.PARAGRAPH, LayoutStyle.PARAGRAPH,
-			NodeType.BLOCK_QUOTE, LayoutStyle.BLOCK_QUOTE
+			NodeType.BLOCK_QUOTE, LayoutStyle.BLOCK_QUOTE,
+			NodeType.LINK, LayoutStyle.LINK
 			);
 	
 	private List<ClickableWidget> currentChildren = new ArrayList<>();
-	private final boolean scrollable;
-	private int contentHeight;
 	
-	public MarkdownWidget(int x, int y, int width, int height, boolean scrollable) {
-		super(x, y, width, height, Text.empty());
+	public MarkdownWidget(int x, int y, int width) {
+		super(x, y, width, 0, Text.empty());
 		
 		this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
-		this.scrollable = scrollable;
 	}
 	
 	/*
@@ -103,30 +103,32 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	@Override
+	public void setWidth(int width) {
+		super.setWidth(width);
+		this.rebuildWidgets();
+	}
+	
+	@Override
 	public void renderWidget(DrawContext dc, int mouseX, int mouseY, float deltaTicks) {
 		dc.getMatrices().push();
 		dc.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
 		
-		if (this.scrollable) {
-			dc.enableScissor(getX(), getY(), getX() + width, getY() + height);
-			dc.getMatrices().translate(0, -getScrollY(), 0);
-		}
-		
 		for (ClickableWidget child : currentChildren) {
 			child.render(dc, mouseX, mouseY, deltaTicks);
 		}
-		
-		if (this.scrollable) {
-			dc.disableScissor();
-		}
-		
+
 		dc.getMatrices().pop();
-		
-		if (this.scrollable) {
-			this.drawScrollbar(dc);
-		}
 	}
-	
+
+	@Override
+	public void setY(int y) {
+		for (ClickableWidget child : currentChildren) {
+			child.setY(child.getY() + (y - this.getY()));
+		}
+		
+		super.setY(y);
+	}
+
 	private void rebuildWidgets() {
 		Deque<BlockContext> contexts = new ArrayDeque<>();
 		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
@@ -138,7 +140,7 @@ public class MarkdownWidget extends ContainerWidget {
 		//ScreenRect rect = contexts.peek().line().layout();
 		//finalPosition = finalPosition.withOffset(0, rect.height());
 		
-		this.contentHeight = finalPosition.y() - this.getY();
+		this.setHeight(finalPosition.y() - this.getY());
 	}
 	
 	private Position buildWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
@@ -180,7 +182,7 @@ public class MarkdownWidget extends ContainerWidget {
 		nextPosition = Position.of(blockX, blockY);
 		
 		if (node.type() == NodeType.BLOCK_QUOTE) {
-			nextPosition = buildBlockWidget(node, nextPosition, contexts, newStyle);
+			nextPosition = buildBlockQuoteWidget(node, nextPosition, contexts, newStyle);
 		} else {
 			for (DocNode child : node.children()) {
 				nextPosition = buildWidgets(child, nextPosition, contexts, newStyle);
@@ -205,7 +207,7 @@ public class MarkdownWidget extends ContainerWidget {
 		return result;
 	}
 	
-	private Position buildBlockWidget(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
+	private Position buildBlockQuoteWidget(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
 		// FIXME: Add padding to some better place (possibly LayoutStyle?)
 		final int VERTICAL_PADDING = 2;
 		
@@ -219,7 +221,7 @@ public class MarkdownWidget extends ContainerWidget {
 
 		BlockQuoteInfo info = BlockQuoteInfo.of((String) node.attributes());
 		if (!info.equals(BlockQuoteInfo.DEFAULT)) {
-			BlockQuoteTitleWidget titleWidget = new BlockQuoteTitleWidget(nextPosition.x(), nextPosition.y(), info, this.font);
+			BlockQuoteTitleWidget titleWidget = new BlockQuoteTitleWidget(nextPosition.x(), nextPosition.y(), info, this.font, style);
 			this.currentChildren.add(titleWidget);
 			nextPosition = nextPosition.withOffset(ScreenAxis.VERTICAL, style.applyScale(titleWidget.getHeight() + font.fontHeight));
 		}
@@ -238,7 +240,7 @@ public class MarkdownWidget extends ContainerWidget {
 		int blockHeight = (lastChild.getY() + lastChild.getHeight()) - position.y() + VERTICAL_PADDING;
 		nextPosition = Position.of(nextPosition.x(), outerContext.y() + blockHeight);
 		
-		BlockQuoteWidget widget = new BlockQuoteWidget(position.x(), position.y(), outerContext.width(), blockHeight, info.color(), this.currentChildren);
+		BlockQuoteWidget widget = new BlockQuoteWidget(position.x(), position.y(), outerContext.width(), blockHeight, info.color(), style, this.currentChildren);
 		this.currentChildren = previousChildren;
 		this.currentChildren.add(widget);
 		
@@ -260,6 +262,10 @@ public class MarkdownWidget extends ContainerWidget {
 		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
 		NodeStyle newStyle = layout.style().combined(externalStyle);
 		String nodeText = node.text();
+		
+		if (node.type() == NodeType.LINK) {
+			newStyle = appendLinkHandlers(node, newStyle);
+		}
 		
 		// FIXME: Should be configurable
 		if (node.type() == NodeType.LIST_ITEM) {
@@ -315,7 +321,7 @@ public class MarkdownWidget extends ContainerWidget {
 		Text altText = node.asText(NodeStyle.NORMAL,
 			(type) -> layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT).style());
 
-		ClickableWidget child = new ImageWidget(position.x(), position.y(), childSize.width(), childSize.height(), altText, imageId, font);
+		ClickableWidget child = new ImageWidget(position.x(), position.y(), childSize.width(), childSize.height(), altText, imageId, font, style);
 		this.currentChildren.add(child);
 		
 		Position nextPosition = Position.of(position.x() + childSize.width(), position.y());
@@ -350,6 +356,12 @@ public class MarkdownWidget extends ContainerWidget {
 
 		// FIXME: Aspect ratio stuff
 		return actualSize.scale(style.size());
+	}
+	
+	private NodeStyle appendLinkHandlers(DocNode node, NodeStyle style) {
+		if (node.type() != NodeType.LINK || !(node.attributes() instanceof LinkInfo linkInfo)) return style;
+
+		return style.withOnClick(new ExternalLinkClickEventHandler(linkInfo.destination()));
 	}
 	
 	private Position buildInlineText(Position position, NodeStyle style, String nodeText, BlockContext context) {
@@ -397,12 +409,12 @@ public class MarkdownWidget extends ContainerWidget {
 
 	@Override
 	protected int getContentsHeightWithPadding() {
-		return contentHeight;
+		return this.height;
 	}
 
 	@Override
 	protected double getDeltaYPerScroll() {
-		return 10.0;
+		return 0.0;
 	}
 
 	@Override

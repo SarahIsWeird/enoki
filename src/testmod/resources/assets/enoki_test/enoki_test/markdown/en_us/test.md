@@ -9,6 +9,8 @@ Throw in a line break just for good measure, which it should be fine with?
 
 A B **Did you know? Sarah can be malicious as well :3 Frick your ~~chicken strips~~ text widths!**
 
+Reusing jokes here: You [minecraft:stone](https://example.com)
+
 > Have you ever heard of the tragedy of Darth Plagueis the Wise?
 > 
 > Of course, I wrote my thesis about him!

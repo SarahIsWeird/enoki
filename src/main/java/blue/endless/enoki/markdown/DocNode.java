@@ -1,5 +1,6 @@
 package blue.endless.enoki.markdown;
 
+import blue.endless.enoki.gui.widgets.link.LinkInfo;
 import blue.endless.enoki.markdown.attributes.DocImageAttributes;
 import blue.endless.enoki.utils.ParseUtils;
 import net.fabricmc.api.EnvType;
@@ -105,7 +106,7 @@ public record DocNode(NodeType type, String text, Object attributes, List<DocNod
 			case HtmlInline htmlInline -> new DocNode(NodeType.HTML_INLINE, htmlInline.getLiteral(), children);
 			case Image image -> normalizeImageNode(image, children);
 			case IndentedCodeBlock indentedBlock -> new DocNode(NodeType.INDENTED_CODE_BLOCK, indentedBlock.getLiteral(), children);
-			case Link link -> new DocNode(NodeType.LINK, link.getTitle(), link.getDestination(), children);
+			case Link link -> new DocNode(NodeType.LINK, "", LinkInfo.of(link), children);
 			// For now, we skip these. In HTML, this is rendered as an anchor.
 			case LinkReferenceDefinition ref -> new DocNode(NodeType.LINK_REFERENCE_DEFINITION, "", ref.getLabel() + ":" + ref.getDestination() + ":" + ref.getTitle(), children);
 			case OrderedList ordered -> new DocNode(NodeType.ORDERED_LIST, "", Objects.requireNonNullElse(ordered.getMarkerStartNumber(), 1).toString(), children);

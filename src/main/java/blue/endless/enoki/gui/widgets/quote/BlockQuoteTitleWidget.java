@@ -2,26 +2,31 @@ package blue.endless.enoki.gui.widgets.quote;
 
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.gui.Size;
+import blue.endless.enoki.gui.widgets.AbstractMarkdownWidget;
+import blue.endless.enoki.markdown.NodeStyle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Colors;
 
-public class BlockQuoteTitleWidget extends ClickableWidget {
+public class BlockQuoteTitleWidget extends AbstractMarkdownWidget {
 	private final BlockQuoteInfo info;
 	private final TextRenderer font;
 	private final int spaceWidth;
 	private final Size iconSize;
 	
-	public BlockQuoteTitleWidget(int x, int y, BlockQuoteInfo info, TextRenderer font) {
-		super(x, y, getTitleWidth(info, font), font.fontHeight, info.title());
+	public BlockQuoteTitleWidget(int x, int y, BlockQuoteInfo info, TextRenderer font, NodeStyle style) {
+		super(x, y, getTitleWidth(info, font), font.fontHeight, info.title(), style);
 		this.info = info;
 		this.font = font;
 		this.spaceWidth = font.getWidth(" ");
 		
 		this.iconSize = MarkdownWidget.getActualImageSize(info.iconId());
+	}
+
+	@Override
+	protected boolean hasClickBehavior() {
+		return false;
 	}
 
 	@Override
@@ -49,16 +54,6 @@ public class BlockQuoteTitleWidget extends ClickableWidget {
 		);
 		
 		return iconSize.width() + spaceWidth;
-	}
-
-	@Override
-	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		return false;
-	}
-
-	@Override
-	protected void appendClickableNarrations(NarrationMessageBuilder builder) {
-		
 	}
 
 	private static int getTitleWidth(BlockQuoteInfo info, TextRenderer font) {

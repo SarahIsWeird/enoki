@@ -49,4 +49,9 @@ public record LayoutStyle(NodeStyle style, int indent, Margins margins) {
 	public static LayoutStyle UNDERLINE = new LayoutStyle(NodeStyle.NORMAL.withUnderline(), 0, Margins.ZERO);
 	public static LayoutStyle PARAGRAPH = new LayoutStyle(NodeStyle.NORMAL, 0, Margins.PAD_BELOW);
 	public static LayoutStyle BLOCK_QUOTE = new LayoutStyle(NodeStyle.NORMAL, 8, Margins.ZERO);
+	public static LayoutStyle LINK = new LayoutStyle(
+		NodeStyle.NORMAL.withColor(Formatting.DARK_BLUE).withBold().withUnderline(),
+		0,
+		Margins.ZERO
+	);
 }
