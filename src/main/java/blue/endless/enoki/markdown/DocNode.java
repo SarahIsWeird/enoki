@@ -51,7 +51,7 @@ public record DocNode(NodeType type, String text, Object attributes, List<DocNod
 	
 	public net.minecraft.text.Text asText(NodeStyle outerStyle, Function<NodeType, NodeStyle> styleGetter) {
 		MutableText styledText = net.minecraft.text.Text.empty();
-		NodeStyle style = styleGetter.apply(type).combined(outerStyle);
+		NodeStyle style = styleGetter.apply(type).withDefaults(outerStyle);
 		
 		if (text != null && !text.isEmpty()) {
 			MutableText ownText = net.minecraft.text.Text.literal(text).setStyle(style.asStyle());

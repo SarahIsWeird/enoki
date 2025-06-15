@@ -1,4 +1,6 @@
-package blue.endless.enoki.gui;
+package blue.endless.enoki.gui.widgets;
+
+import blue.endless.enoki.gui.Size;
 
 /**
  * Implementing this interface indicates that a Widget can be resized by the layout engine. The engine will typically

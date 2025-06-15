@@ -6,7 +6,6 @@ import net.minecraft.client.font.TextRenderer;
 import net.minecraft.text.Style;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * This class is both expanded and simplified from net.minecraft.text.Style.
@@ -18,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
  * boxed objects.
  */
 @Environment(EnvType.CLIENT)
-public record NodeStyle(float size, int color, byte style, @Nullable ClickEventHandler clickHandler) {
+public record NodeStyle(float size, int color, int background, byte style) {
 	public static final NodeStyle NORMAL = new NodeStyle(1.0f, -1);
 	
 	private static final int BOLD          = 0x01;
@@ -37,11 +36,7 @@ public record NodeStyle(float size, int color, byte style, @Nullable ClickEventH
 	}
 	
 	public NodeStyle(float size, int color, int style) {
-		this(size, color, (byte) style, null);
-	}
-	
-	public NodeStyle(float size, int color, int style, @Nullable ClickEventHandler onClick) {
-		this(size, color, (byte) style, onClick);
+		this(size, color, 0, (byte) style);
 	}
 
 	public NodeStyle {
@@ -84,48 +79,49 @@ public record NodeStyle(float size, int color, byte style, @Nullable ClickEventH
 		return new NodeStyle(size, argb, style);
 	}
 	
+	public NodeStyle withBackgroundColor(int argb) {
+		if (background == argb) return this;
+		return new NodeStyle(size, color, argb, style);
+	}
+	
 	public NodeStyle withBold() {
-		return new NodeStyle(size, color, style | BOLD, clickHandler);
+		return new NodeStyle(size, color, style | BOLD);
 	}
 	
 	public NodeStyle withItalic() {
-		return new NodeStyle(size, color, style | ITALIC, clickHandler);
+		return new NodeStyle(size, color, style | ITALIC);
 	}
 	
 	public NodeStyle withUnderline() {
-		return new NodeStyle(size, color, style | UNDERLINE, clickHandler);
+		return new NodeStyle(size, color, style | UNDERLINE);
 	}
 	
 	public NodeStyle withStrikethrough() {
-		return new NodeStyle(size, color, style | STRIKETHROUGH, clickHandler);
+		return new NodeStyle(size, color, style | STRIKETHROUGH);
 	}
 	
 	public NodeStyle withShadow() {
-		return new NodeStyle(size, color, style | SHADOW, clickHandler);
+		return new NodeStyle(size, color, style | SHADOW);
 	}
 	
 	public NodeStyle withoutBold() {
-		return new NodeStyle(size, color, style & ~BOLD, clickHandler);
+		return new NodeStyle(size, color, style & ~BOLD);
 	}
 	
 	public NodeStyle withoutItalic() {
-		return new NodeStyle(size, color, style & ~ITALIC, clickHandler);
+		return new NodeStyle(size, color, style & ~ITALIC);
 	}
 	
 	public NodeStyle withoutUnderline() {
-		return new NodeStyle(size, color, style & ~UNDERLINE, clickHandler);
+		return new NodeStyle(size, color, style & ~UNDERLINE);
 	}
 	
 	public NodeStyle withoutStrikethrough() {
-		return new NodeStyle(size, color, style & ~STRIKETHROUGH, clickHandler);
+		return new NodeStyle(size, color, style & ~STRIKETHROUGH);
 	}
 	
 	public NodeStyle withoutShadow() {
-		return new NodeStyle(size, color, style & ~SHADOW, clickHandler);
-	}
-	
-	public NodeStyle withOnClick(@Nullable ClickEventHandler newOnClick) {
-		return new NodeStyle(size, color, style, newOnClick);
+		return new NodeStyle(size, color, style & ~SHADOW);
 	}
 	
 	public Style asStyle() {
@@ -148,10 +144,10 @@ public record NodeStyle(float size, int color, byte style, @Nullable ClickEventH
 	 * @param defaults The style to default the behavior to
 	 * @return The combined style
 	 */
-	public NodeStyle combined(NodeStyle defaults) {
+	public NodeStyle withDefaults(NodeStyle defaults) {
 		int color = this.color;
 		if (color == -1) color = defaults.color;
-		return new NodeStyle(size * defaults.size, color, this.style | defaults.style, defaults.clickHandler);
+		return new NodeStyle(size * defaults.size, color, this.style | defaults.style);
 	}
 	
 	public int applyScale(int value) {

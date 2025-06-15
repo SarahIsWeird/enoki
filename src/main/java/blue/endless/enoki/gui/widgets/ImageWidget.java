@@ -1,11 +1,14 @@
 package blue.endless.enoki.gui.widgets;
 
+import java.util.Iterator;
+import java.util.List;
+
 import blue.endless.enoki.gui.MarkdownWidget;
-import blue.endless.enoki.gui.Resizeable;
 import blue.endless.enoki.gui.Size;
-import blue.endless.enoki.markdown.NodeStyle;
+import blue.endless.enoki.markdown.LayoutStyle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
@@ -16,16 +19,11 @@ public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 	private final Identifier image;
 	private final Size imageSize;
 
-	public ImageWidget(int x, int y, int width, int height, Text altText, Identifier image, TextRenderer font, NodeStyle style) {
+	public ImageWidget(int x, int y, int width, int height, Text altText, Identifier image, TextRenderer font, LayoutStyle style) {
 		super(x, y, width, height, altText, style);
 		this.font = font;
 		this.image = image;
 		this.imageSize = MarkdownWidget.getActualImageSize(image);
-	}
-
-	@Override
-	protected boolean hasClickBehavior() {
-		return false;
 	}
 
 	@Override
@@ -47,5 +45,10 @@ public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 		}
 
 		context.getMatrices().pop();
+	}
+
+	@Override
+	public Iterator<ClickableWidget> iterator() {
+		return List.<ClickableWidget>of().iterator();
 	}
 }

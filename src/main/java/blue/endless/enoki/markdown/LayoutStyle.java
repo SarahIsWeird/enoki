@@ -54,4 +54,7 @@ public record LayoutStyle(NodeStyle style, int indent, Margins margins) {
 		0,
 		Margins.ZERO
 	);
+	public LayoutStyle withDefaults(LayoutStyle externalStyle) {
+		return new LayoutStyle(style.withDefaults(externalStyle.style()), indent, margins);
+	}
 }

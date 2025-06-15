@@ -1,18 +1,14 @@
 package blue.endless.enoki.gui;
 
+import blue.endless.enoki.gui.widgets.AbstractMarkdownWidget;
+import blue.endless.enoki.gui.widgets.BlockContainerWidget;
+import blue.endless.enoki.gui.widgets.FlowContainerWidget;
+import blue.endless.enoki.gui.widgets.HeadingWidget;
 import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
-import blue.endless.enoki.gui.widgets.link.ExternalLinkClickEventHandler;
-import blue.endless.enoki.gui.widgets.link.LinkInfo;
-import blue.endless.enoki.gui.widgets.quote.BlockQuoteInfo;
-import blue.endless.enoki.gui.widgets.quote.BlockQuoteTitleWidget;
-import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.LayoutStyle;
-import blue.endless.enoki.markdown.NodeStyle;
 import blue.endless.enoki.markdown.NodeType;
-import blue.endless.enoki.markdown.attributes.DocImageAttributes;
-import blue.endless.enoki.text.ScreenAxis;
 import blue.endless.enoki.text.WordWrap;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.fabricmc.api.EnvType;
@@ -21,7 +17,6 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
-import net.minecraft.client.gui.ScreenRect;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.gui.widget.ContainerWidget;
@@ -32,9 +27,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 
@@ -109,7 +102,8 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	@Override
-	public void renderWidget(DrawContext dc, int mouseX, int mouseY, float deltaTicks) {
+	public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+		/*
 		dc.getMatrices().push();
 		dc.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
 		
@@ -117,32 +111,109 @@ public class MarkdownWidget extends ContainerWidget {
 			child.render(dc, mouseX, mouseY, deltaTicks);
 		}
 
-		dc.getMatrices().pop();
-	}
-
-	@Override
-	public void setY(int y) {
-		for (ClickableWidget child : currentChildren) {
-			child.setY(child.getY() + (y - this.getY()));
+		dc.getMatrices().pop();*/
+		context.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
+		
+		context.getMatrices().push();
+		context.getMatrices().translate(this.getX(), this.getY() - this.getScrollY(), 0);
+		
+		for(ClickableWidget widget : currentChildren) {
+			
+			context.getMatrices().push();
+			context.getMatrices().translate(widget.getX(), widget.getY(), 0);
+			
+			//context.enableScissor(0, 0, width, height);
+			
+			widget.render(context, mouseX - widget.getX(), mouseY - widget.getY(), deltaTicks);
+			
+			//context.disableScissor();
+			
+			context.getMatrices().pop();
 		}
 		
-		super.setY(y);
+		context.getMatrices().pop();
 	}
+	
+	
+
+	//@Override
+	//public void setY(int y) {
+	//	for (ClickableWidget child : currentChildren) {
+	//		child.setY(child.getY() + (y - this.getY()));
+	//	}
+		
+	//	super.setY(y);
+	//}
 
 	private void rebuildWidgets() {
-		Deque<BlockContext> contexts = new ArrayDeque<>();
-		contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
+		
+		
+		
+		//Deque<BlockContext> contexts = new ArrayDeque<>();
+		//contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
 
 		this.currentChildren.clear();
-		Position finalPosition = buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
+		ClickableWidget rootWidget = buildBlock(document, getWidth(), LayoutStyle.DOCUMENT);
+		System.out.println("Built document block: "+rootWidget.getWidth()+" x "+rootWidget.getHeight());
+		this.currentChildren.add(rootWidget);
+		//Position finalPosition = buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
 		
 		// Terminate the last line if there is one.
 		//ScreenRect rect = contexts.peek().line().layout();
 		//finalPosition = finalPosition.withOffset(0, rect.height());
 		
-		this.setHeight(finalPosition.y() - this.getY());
+		this.setHeight(rootWidget.getHeight());
 	}
 	
+	private ClickableWidget buildBlock(DocNode node, int width, LayoutStyle externalStyle) {
+		System.out.println("Building block of type "+node.type());
+		AbstractMarkdownWidget result = switch(node.type()) {
+			case H1, H2, H3, H4, H5, H6 -> new HeadingWidget(width, externalStyle);
+			case IMAGE -> new ImageWidget(0, 0, width, 64, Text.literal(""), Identifier.of("minecraft:stone"), font, externalStyle);
+			default -> new BlockContainerWidget(width, externalStyle);
+		};
+		
+		
+		if (result instanceof BlockContainerWidget block) for(DocNode child : node.children()) {
+			LayoutStyle childStyle = layoutMap.getOrDefault(child.type(), LayoutStyle.TEXT)
+					.withDefaults(externalStyle);
+			
+			if (child.type().isBlock()) {
+				//TODO: margins? Indents?
+				ClickableWidget childBlock = buildBlock(child, this.getWidth(), childStyle);
+				block.add(childBlock);
+			} else {
+				ClickableWidget childFlow = buildFlow(child, this.getWidth(), childStyle);
+				
+				block.add(childFlow);
+			}
+		}
+		
+		return result;
+	}
+	
+	private ClickableWidget buildFlow(DocNode node, int width, LayoutStyle externalStyle) {
+		System.out.println("Building flow element of type "+node.type()+" with style 0x"+Integer.toHexString(externalStyle.style().style()));
+		AbstractMarkdownWidget result = switch (node.type()) {
+			case TEXT -> new TextSpanWidget(node.text(), externalStyle, MinecraftClient.getInstance().textRenderer);
+			
+			// TODO: Some more types
+			default -> new FlowContainerWidget(externalStyle);
+		};
+		
+		if (result instanceof FlowContainerWidget container) {
+			for(DocNode child : node.children()) {
+				LayoutStyle childStyle = layoutMap.getOrDefault(child.type(), LayoutStyle.TEXT)
+						.withDefaults(externalStyle);
+				container.add(buildFlow(child, width, childStyle));
+			}
+		}
+		
+		return result;
+	}
+	
+	
+	/*
 	private Position buildWidgets(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
 		if (node.type().isBlock()) {
 			return buildBlockWidgets(node, position, contexts, style);
@@ -154,7 +225,7 @@ public class MarkdownWidget extends ContainerWidget {
 	private Position buildBlockWidgets(DocNode node, Position nextPosition, Deque<BlockContext> contexts, NodeStyle externalStyle) {
 		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
 		
-		NodeStyle newStyle = layout.style().combined(externalStyle);
+		NodeStyle newStyle = layout.style().withDefaults(externalStyle);
 		Margins margins = layout.margins();
 		
 		BlockContext context = contexts.peek();
@@ -205,8 +276,8 @@ public class MarkdownWidget extends ContainerWidget {
 		context.line().setStartPosition(result);
 		
 		return result;
-	}
-	
+	}*/
+	/*
 	private Position buildBlockQuoteWidget(DocNode node, Position position, Deque<BlockContext> contexts, NodeStyle style) {
 		// FIXME: Add padding to some better place (possibly LayoutStyle?)
 		final int VERTICAL_PADDING = 2;
@@ -260,10 +331,11 @@ public class MarkdownWidget extends ContainerWidget {
 		if (context == null) return position;
 
 		LayoutStyle layout = layoutMap.getOrDefault(node.type(), LayoutStyle.TEXT);
-		NodeStyle newStyle = layout.style().combined(externalStyle);
+		NodeStyle newStyle = layout.style().withDefaults(externalStyle);
 		String nodeText = node.text();
 		
 		if (node.type() == NodeType.LINK) {
+			// TODO: Link handlers happen in a different stage of the pipeline now - as a setting on the container widget itself
 			newStyle = appendLinkHandlers(node, newStyle);
 		}
 		
@@ -333,15 +405,7 @@ public class MarkdownWidget extends ContainerWidget {
 		return nextPosition;
 	}
 	
-	public static Size getActualImageSize(Identifier imageId) {
-		try {
-			GpuTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(imageId).getGlTexture();
-			System.out.println("Sizeof "+imageId+": "+tex.getWidth(0)+" x "+tex.getHeight(0));
-			return new Size(tex.getWidth(0), tex.getHeight(0));
-		} catch (IllegalStateException ex) {
-			return new Size(0,0);
-		}
-	}
+	
 	
 	private Size getImageSize(DocImageAttributes attributes, NodeStyle style, Identifier imageId) {
 		int width = attributes.size().width();
@@ -360,8 +424,8 @@ public class MarkdownWidget extends ContainerWidget {
 	
 	private NodeStyle appendLinkHandlers(DocNode node, NodeStyle style) {
 		if (node.type() != NodeType.LINK || !(node.attributes() instanceof LinkInfo linkInfo)) return style;
-
-		return style.withOnClick(new ExternalLinkClickEventHandler(linkInfo.destination()));
+		return style;
+		//return style.withOnClick(new ExternalLinkClickEventHandler(linkInfo.destination()));
 	}
 	
 	private Position buildInlineText(Position position, NodeStyle style, String nodeText, BlockContext context) {
@@ -377,14 +441,6 @@ public class MarkdownWidget extends ContainerWidget {
 			//System.out.println("Available width - Line: "+availableLineWidth+" Calc: "+(context.width() - incomingIndent));
 			
 			String nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style);
-			/* if (nextLine == null) {
-				ScreenRect rect = context.line().layout();
-				context.line().advanceLine(rect);
-				nextPosition = new Position(context.x(), nextPosition.y() + rect.height());
-				incomingIndent = nextPosition.x() - context.x();
-				availableLineWidth = context.width() - incomingIndent;
-				nextLine = wordWrap.getFirstLine(font, availableLineWidth, remainingText, style);
-			} */
 			lastLine = Text.literal(nextLine).setStyle(style.asStyle());
 			
 			ClickableWidget child = new TextSpanWidget(nextPosition.x(), nextPosition.y(), lastLine, style, this.font);
@@ -400,6 +456,16 @@ public class MarkdownWidget extends ContainerWidget {
 		}
 		
 		return nextPosition.withOffset(style.getTextWidth(lastLine, font), 0);
+	}*/
+	
+	public static Size getActualImageSize(Identifier imageId) {
+		try {
+			GpuTexture tex = MinecraftClient.getInstance().getTextureManager().getTexture(imageId).getGlTexture();
+			System.out.println("Sizeof "+imageId+": "+tex.getWidth(0)+" x "+tex.getHeight(0));
+			return new Size(tex.getWidth(0), tex.getHeight(0));
+		} catch (IllegalStateException ex) {
+			return new Size(0,0);
+		}
 	}
 	
 	@Override
