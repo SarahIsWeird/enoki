@@ -27,7 +27,7 @@ public class CodecUtils {
 	}
 	
 	private static DataResult<Integer> hexColorToInt(String hexCode) {
-		if (!hexCode.startsWith("#")) hexCode = hexCode.substring(1);
+		if (hexCode.startsWith("#")) hexCode = hexCode.substring(1);
 		
 		var alpha = DataResult.success(255);
 		var red = DataResult.success(0);
