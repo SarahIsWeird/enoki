@@ -1,5 +1,8 @@
 package blue.endless.enoki;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.resource.LocalizedResourceManager;
 import blue.endless.enoki.resource.StyleManager;
@@ -10,9 +13,11 @@ import net.minecraft.util.Identifier;
 
 public class EnokiClient implements ClientModInitializer {
 	public static StyleManager styleManager = new StyleManager();
+	public static Logger LOGGER = LoggerFactory.getLogger("Enoki");
 	
 	@Override
 	public void onInitializeClient() {
+		LOGGER.info("***************************CLIENT INIT*****************************");
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
 			.registerReloadListener(styleManager.getReloadListener());
 	}
