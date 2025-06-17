@@ -59,19 +59,8 @@ public class LayoutStyleSheet {
 	}
 	
 	public Map<NodeType, LayoutStyle> bake() {
-		this.ensureDefaultCategoryIsFilledIn();
 		this.fillInDefaultsFromParentCategories();
-		
-		Map<NodeType, LayoutStyle> bakedStyles = new HashMap<>();
-		for (NodeType type : NodeType.values()) {
-			NodeCategory category = NodeCategory.getByNodeType(type).orElse(NodeCategory.DEFAULT);
-			
-			// Must be present, we just filled it in!
-			LayoutStyle style = this.styles.get(category);
-			bakedStyles.put(type, style);
-		}
-		
-		return bakedStyles;
+		return this.buildNodeTypeMap();
 	}
 	
 	private void fillInDefaultsFromParentCategories() {
@@ -79,22 +68,23 @@ public class LayoutStyleSheet {
 			LayoutStyle style = this.get(category).orElse(LayoutStyle.empty());
 
 			for (NodeCategory hierarchyCategory : category.getHierarchy()) {
-				if (this.styles.containsKey(hierarchyCategory)) {
-					this.styles.get(hierarchyCategory).applyDefaults(style);
-				} else {
-					this.styles.put(hierarchyCategory, style);
-				}
+				this.get(hierarchyCategory).ifPresent(style::applyDefaults);
 			}
+			
+			this.put(category, style);
 		}
 	}
 	
-	private void ensureDefaultCategoryIsFilledIn() {
-		LayoutStyle defaults = LayoutStyle.defaulted();
-		
-		if (this.styles.containsKey(NodeCategory.DEFAULT)) {
-			this.styles.get(NodeCategory.DEFAULT).applyDefaults(defaults);
-		} else {
-			this.styles.put(NodeCategory.DEFAULT, defaults);
+	private Map<NodeType, LayoutStyle> buildNodeTypeMap() {
+		Map<NodeType, LayoutStyle> bakedStyles = new HashMap<>();
+		for (NodeType type : NodeType.values()) {
+			NodeCategory category = NodeCategory.getByNodeType(type).orElse(NodeCategory.DEFAULT);
+
+			// Must be present, we just filled it in!
+			LayoutStyle style = this.styles.get(category);
+			bakedStyles.put(type, style);
 		}
+		
+		return bakedStyles;
 	}
 }
