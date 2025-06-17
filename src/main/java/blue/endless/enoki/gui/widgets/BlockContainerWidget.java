@@ -64,20 +64,26 @@ public class BlockContainerWidget extends AbstractMarkdownWidget implements Resi
 				System.out.println("Filling in remainder of a non-empty previous line...");
 				Result r = splittable.split(lastLine.getAvailableSpace(), false);
 				if (r.success()) {
-					System.out.println("Succeeded, first-line is "+r.result().getMessage().getLiteralString());
+					System.out.println("Succeeded, first-line is "+r.result().getMessage().getLiteralString()+" at "+r.result().getWidth()+" wide.");
 					lastLine.add(r.result());
 					remainder = r.leftover();
+					if (r.leftover() != null) lastLine = newLine(); // NOT GUARANTEED! THIS IS A HEURISTIC!
+				} else {
+					System.out.println("Failed. We have "+lastLine.getAvailableSpace()+" space, but splittable is "+widget.getWidth()+" wide and can't split enough.");
+					lastLine = newLine();
 				}
 				
-				lastLine = newLine();
+				//lastLine = newLine();
 			}
+			
+			
 			
 			/*
 			 * Second phase is as many full-width wraps as we need. If at any point we can't fit anything on a line,
 			 * we need to hard-wrap it.
 			 */
 			while(remainder != null) {
-				System.out.println("Filling in an entire line");
+				System.out.println("Continuing on to fill new lines.");
 				// Try to fit against the full width of the line
 				if (remainder.getWidth() < this.width) {
 					System.out.println("Added entire remainder: "+remainder.getMessage().getLiteralString());
