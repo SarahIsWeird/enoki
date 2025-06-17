@@ -19,6 +19,9 @@ import java.util.Map;
 import java.util.Optional;
 
 public class StyleManager {
+	private static final String PATH_PREFIX = "markdown/styles";
+	private static final String PATH_SUFFIX = ".json";
+	
 	protected final Map<Identifier, LayoutStyleSheet> styleSheets = new HashMap<>();
 	
 	public Optional<LayoutStyleSheet> getStyleSheet(Identifier id) {
@@ -40,13 +43,33 @@ public class StyleManager {
 		public Identifier getFabricId() {
 			return Identifier.of("enoki", "style_manager_reload_listener");
 		}
+		
+		private static Optional<Identifier> resolveStyleId(Identifier resourceId) {
+			String path = resourceId.getPath();
+			if (!path.startsWith(PATH_PREFIX + "/") || !path.endsWith(PATH_SUFFIX)) {
+				return Optional.empty();
+			}
+			
+			path = path.substring(PATH_PREFIX.length() + 1); // Account for slash
+			path = path.substring(0, path.length() - PATH_SUFFIX.length());
+			
+			if (path.isEmpty()) return Optional.empty();
+			return Optional.of(resourceId.withPath(path));
+		}
 
 		@Override
 		public void reload(ResourceManager manager) {
-			Map<Identifier, Resource> resources = manager.findResources("styles", identifier -> identifier.getPath().endsWith(".json"));
+			Map<Identifier, Resource> resources = manager.findResources(PATH_PREFIX,
+				identifier -> identifier.getPath().endsWith(PATH_SUFFIX));
 			
 			for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
-				Identifier id = entry.getKey();
+				Optional<Identifier> idResult = resolveStyleId(entry.getKey());
+				if (idResult.isEmpty()) {
+					LOGGER.error("Invalid style json resource id: {}", entry.getKey());
+					continue;
+				}
+				
+				Identifier id = idResult.get();
 				Resource resource = entry.getValue();
 				
 				try (BufferedReader reader = resource.getReader()) {

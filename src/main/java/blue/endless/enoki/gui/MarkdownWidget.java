@@ -10,7 +10,7 @@ import blue.endless.enoki.gui.widgets.TextSpanWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.NodeType;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
-import blue.endless.enoki.text.WordWrap;
+import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -29,7 +29,6 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -51,8 +50,16 @@ public class MarkdownWidget extends ContainerWidget {
 		
 		//this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
-		//this.layoutMap = new HashMap<>();
-		this.layoutMap = EnokiClient.styleManager.getStyleSheet(Identifier.of("enoki:styles/test.json")).get().bake();
+
+		Identifier defaultSheetId = Identifier.of("enoki:default");
+		Identifier testSheetId = Identifier.of("enoki:test");
+		
+		LayoutStyleSheet defaultSheet = EnokiClient.styleManager.getStyleSheet(defaultSheetId).get();
+		LayoutStyleSheet testSheet = EnokiClient.styleManager.getStyleSheet(testSheetId).get();
+		
+		testSheet.applyDefaults(defaultSheet);
+		this.layoutMap = testSheet.bake();
+		
 		for (Map.Entry<NodeType, LayoutStyle> entry : this.layoutMap.entrySet()) {
 			NodeType type = entry.getKey();
 			LayoutStyle style = entry.getValue();
@@ -169,10 +176,13 @@ public class MarkdownWidget extends ContainerWidget {
 		if (innerStyle == null) {
 			innerStyle = LayoutStyle.defaulted();
 		}
+		
+		outerStyle = outerStyle.copy();
+		outerStyle.applyDefaults(innerStyle);
 
-		innerStyle = innerStyle.copy();
-		innerStyle.applyDefaults(outerStyle);
-		return innerStyle;
+//		innerStyle = innerStyle.copy();
+//		innerStyle.applyDefaults(outerStyle);
+		return outerStyle;
 	}
 	
 	private ClickableWidget buildBlock(DocNode node, int width, LayoutStyle externalStyle) {
@@ -212,7 +222,14 @@ public class MarkdownWidget extends ContainerWidget {
 		
 		if (result instanceof FlowContainerWidget container) {
 			for(DocNode child : node.children()) {
-				LayoutStyle innerStyle = this.getDefaultedInnerStyle(child.type(), NodeType.TEXT, externalStyle);
+				LayoutStyle innerStyle;
+				if (child.type() == NodeType.TEXT) {
+					LayoutStyle textStyle = this.layoutMap.getOrDefault(NodeType.TEXT, LayoutStyle.empty());
+					innerStyle = externalStyle.copy();
+					innerStyle.applyDefaults(textStyle);
+				} else {
+					innerStyle = this.getDefaultedInnerStyle(child.type(), NodeType.TEXT, externalStyle);
+				}
 				container.add(buildFlow(child, width, innerStyle));
 			}
 		}
