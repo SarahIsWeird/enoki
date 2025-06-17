@@ -1,8 +1,8 @@
 package blue.endless.enoki.gui;
 
 import blue.endless.enoki.markdown.DocNode;
-import blue.endless.enoki.markdown.LayoutStyle;
 import blue.endless.enoki.markdown.NodeType;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Element;
@@ -34,7 +34,7 @@ public class ScrollableMarkdownWidget extends ContainerWidget {
 		this.markdown.setDocument(document);
 	}
 
-	public void setLayoutMap(Map<NodeType, LayoutStyle> layoutMap) {
+	public void setLayoutMap(Map<@NotNull NodeType, LayoutStyle> layoutMap) {
 		this.markdown.setLayoutMap(layoutMap);
 	}
 	

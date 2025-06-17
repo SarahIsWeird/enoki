@@ -1,15 +1,14 @@
 package blue.endless.enoki.text;
 
-import blue.endless.enoki.markdown.NodeStyle;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.BreakIterator;
 import java.util.Locale;
-
-import org.jetbrains.annotations.Nullable;
 
 @Environment(EnvType.CLIENT)
 public class WordWrap {
@@ -24,7 +23,7 @@ public class WordWrap {
 		this.breaks = BreakIterator.getWordInstance(locale);
 	}
 	
-	public String getFirstLine(TextRenderer font, int width, String text, NodeStyle style) {
+	public String getFirstLine(TextRenderer font, int width, String text, LayoutStyle style) {
 		int totalWidth = style.getTextWidth(text, font);
 		if (totalWidth <= width) return text;
 		
@@ -44,7 +43,7 @@ public class WordWrap {
 		return firstLine;
 	}
 	
-	public @Nullable String getCleanFirstLine(TextRenderer font, int width, String text, NodeStyle style) {
+	public @Nullable String getCleanFirstLine(TextRenderer font, int width, String text, LayoutStyle style) {
 		int totalWidth = style.getTextWidth(text, font);
 		if (totalWidth <= width) return text;
 		
@@ -64,7 +63,7 @@ public class WordWrap {
 		return firstLine;
 	}
 	
-	public String hardWrap(TextRenderer font, int width, String text, NodeStyle style) {
+	public String hardWrap(TextRenderer font, int width, String text, LayoutStyle style) {
 		while (style.getTextWidth(text, font) > width && text.length() > 1) {
 			text = text.substring(0, text.length() - 1);
 		}

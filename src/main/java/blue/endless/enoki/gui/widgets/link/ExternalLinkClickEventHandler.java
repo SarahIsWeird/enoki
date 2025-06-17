@@ -1,12 +1,11 @@
 package blue.endless.enoki.gui.widgets.link;
 
-import blue.endless.enoki.markdown.NodeStyle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ConfirmLinkScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.util.Util;
 
-public class ExternalLinkClickEventHandler implements NodeStyle.ClickEventHandler {
+public class ExternalLinkClickEventHandler {
 	private final String destination;
 	private final MinecraftClient client;
 	
@@ -15,7 +14,7 @@ public class ExternalLinkClickEventHandler implements NodeStyle.ClickEventHandle
 		this.client = MinecraftClient.getInstance();
 	}
 
-	@Override
+//	@Override
 	public void handle(double mouseX, double mouseY) {
 		if (client.options.getChatLinksPrompt().getValue()) {
 			this.openConfirmationPrompt();

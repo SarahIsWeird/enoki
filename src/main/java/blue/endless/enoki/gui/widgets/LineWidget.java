@@ -1,12 +1,13 @@
 package blue.endless.enoki.gui.widgets;
 
+import blue.endless.enoki.markdown.styles.LayoutStyle;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.text.Text;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import blue.endless.enoki.markdown.LayoutStyle;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
 
 public class LineWidget extends AbstractMarkdownWidget {
 	protected List<ClickableWidget> children = new ArrayList<>();
@@ -16,6 +17,7 @@ public class LineWidget extends AbstractMarkdownWidget {
 	}
 
 	@Override
+	@NotNull
 	public Iterator<ClickableWidget> iterator() {
 		return children.iterator();
 	}

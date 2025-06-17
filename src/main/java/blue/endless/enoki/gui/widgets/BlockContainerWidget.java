@@ -1,13 +1,13 @@
 package blue.endless.enoki.gui.widgets;
 
+import blue.endless.enoki.gui.widgets.Splittable.Result;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.text.Text;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import blue.endless.enoki.gui.widgets.Splittable.Result;
-import blue.endless.enoki.markdown.LayoutStyle;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
 
 public class BlockContainerWidget extends AbstractMarkdownWidget implements Resizeable {
 	protected List<ClickableWidget> children = new ArrayList<>();

@@ -2,6 +2,7 @@ package blue.endless.enoki.markdown;
 
 import blue.endless.enoki.gui.widgets.link.LinkInfo;
 import blue.endless.enoki.markdown.attributes.DocImageAttributes;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 import blue.endless.enoki.utils.ParseUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -49,9 +50,10 @@ public record DocNode(NodeType type, String text, Object attributes, List<DocNod
 		this(type, text, null, children);
 	}
 	
-	public net.minecraft.text.Text asText(NodeStyle outerStyle, Function<NodeType, NodeStyle> styleGetter) {
+	public net.minecraft.text.Text asText(LayoutStyle outerStyle, Function<NodeType, LayoutStyle> styleGetter) {
 		MutableText styledText = net.minecraft.text.Text.empty();
-		NodeStyle style = styleGetter.apply(type).withDefaults(outerStyle);
+		LayoutStyle style = styleGetter.apply(type).copy();
+		style.applyDefaults(outerStyle);
 		
 		if (text != null && !text.isEmpty()) {
 			MutableText ownText = net.minecraft.text.Text.literal(text).setStyle(style.asStyle());

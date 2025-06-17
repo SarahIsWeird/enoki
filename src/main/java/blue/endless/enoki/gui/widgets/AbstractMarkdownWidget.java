@@ -1,6 +1,6 @@
 package blue.endless.enoki.gui.widgets;
 
-import blue.endless.enoki.markdown.LayoutStyle;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;

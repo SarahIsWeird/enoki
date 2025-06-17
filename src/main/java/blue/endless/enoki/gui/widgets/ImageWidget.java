@@ -1,11 +1,8 @@
 package blue.endless.enoki.gui.widgets;
 
-import java.util.Iterator;
-import java.util.List;
-
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.gui.Size;
-import blue.endless.enoki.markdown.LayoutStyle;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -13,6 +10,10 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 import net.minecraft.util.Identifier;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 	private final TextRenderer font;
@@ -48,7 +49,8 @@ public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 	}
 
 	@Override
+	@NotNull
 	public Iterator<ClickableWidget> iterator() {
-		return List.<ClickableWidget>of().iterator();
+		return Collections.emptyIterator();
 	}
 }

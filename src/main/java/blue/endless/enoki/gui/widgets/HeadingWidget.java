@@ -1,6 +1,6 @@
 package blue.endless.enoki.gui.widgets;
 
-import blue.endless.enoki.markdown.LayoutStyle;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 
 public class HeadingWidget extends BlockContainerWidget {
 

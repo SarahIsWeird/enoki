@@ -1,34 +1,38 @@
 package blue.endless.enoki.gui.widgets;
 
-import java.util.Iterator;
-import java.util.List;
-
-import blue.endless.enoki.markdown.LayoutStyle;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
+import blue.endless.enoki.markdown.styles.properties.StyleProperties;
 import blue.endless.enoki.text.WordWrap;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collections;
+import java.util.Iterator;
 
 public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable {
 	protected final TextRenderer font;
 	protected final String text;
 	
 	public TextSpanWidget(String text, LayoutStyle style, TextRenderer font) {
-		super(0, 0, style.style().getTextWidth(text, font), (int) (font.fontHeight * style.style().size()), Text.literal(text).fillStyle(style.style().asStyle()), style);
+		super(0, 0, style.getTextWidth(text, font), style.applyScale(font.fontHeight), Text.literal(text).fillStyle(style.asStyle()), style);
 		this.font = font;
 		this.text = text;
 	}
 
 	@Override
+	@NotNull
 	public Iterator<ClickableWidget> iterator() {
-		return List.<ClickableWidget>of().iterator();
+		return Collections.emptyIterator();
 	}
 	
 	@Override
 	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		context.drawText(this.font, this.getMessage(), 0, 0, Colors.WHITE, this.style.style().shadow());
+		boolean shadow = style.getOrDefault(StyleProperties.SHADOW, false);
+		context.drawText(this.font, this.getMessage(), 0, 0, Colors.WHITE, shadow);
 	}
 	
 	@Override
@@ -42,9 +46,9 @@ public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable
 		WordWrap wrap = new WordWrap();
 		
 		String firstLine = (force) ?
-				wrap.hardWrap(font, lineWidth, text, style.style())
+				wrap.hardWrap(font, lineWidth, text, style)
 				:
-				wrap.getCleanFirstLine(font, lineWidth, text, style.style());
+				wrap.getCleanFirstLine(font, lineWidth, text, style);
 		
 		if (firstLine == null) return Result.nothingFits(this);
 		if (firstLine.length() == text.length()) return Result.everythingFits(this);

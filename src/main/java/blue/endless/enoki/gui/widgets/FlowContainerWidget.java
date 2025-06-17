@@ -1,14 +1,14 @@
 package blue.endless.enoki.gui.widgets;
 
+import blue.endless.enoki.markdown.styles.LayoutStyle;
+import com.google.common.collect.Iterators;
+import net.minecraft.client.gui.widget.ClickableWidget;
+import net.minecraft.text.Text;
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.common.collect.Iterators;
-
-import blue.endless.enoki.markdown.LayoutStyle;
-import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
 
 public class FlowContainerWidget extends AbstractMarkdownWidget implements Splittable {
 	protected List<ClickableWidget> children = new ArrayList<>();
@@ -29,6 +29,7 @@ public class FlowContainerWidget extends AbstractMarkdownWidget implements Split
 	}
 	
 	@Override
+	@NotNull
 	public Iterator<ClickableWidget> iterator() {
 		return Iterators.unmodifiableIterator(children.iterator());
 	}

@@ -6,7 +6,7 @@ import java.util.List;
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.gui.Size;
 import blue.endless.enoki.gui.widgets.AbstractMarkdownWidget;
-import blue.endless.enoki.markdown.LayoutStyle;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.widget.ClickableWidget;

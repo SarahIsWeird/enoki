@@ -2,6 +2,8 @@ package blue.endless.enoki.markdown;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import org.commonmark.node.BlockQuote;
 import org.commonmark.node.BulletList;
@@ -28,46 +30,57 @@ import org.commonmark.node.StrongEmphasis;
 import org.commonmark.node.Text;
 import org.commonmark.node.ThematicBreak;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Environment(EnvType.CLIENT)
 public enum NodeType {
-	BLOCK_QUOTE(BlockQuote.class, true),
-	BULLET_LIST(BulletList.class, true),
-	CODE(Code.class, true),
-	CUSTOM_BLOCK(CustomBlock.class, true),
-	CUSTOM_NODE(CustomNode.class, false),
-	STRIKETHROUGH(CustomNode.class, false),
-	DOCUMENT(Document.class, true),
-	EMPHASIS(Emphasis.class, false),
-	FENCED_CODE_BLOCK(FencedCodeBlock.class, true),
-	HARD_LINE_BREAK(HardLineBreak.class, false),
-	H1(Heading.class, true),
-	H2(Heading.class, true),
-	H3(Heading.class, true),
-	H4(Heading.class, true),
-	H5(Heading.class, true),
-	H6(Heading.class, true),
-	HTML_BLOCK(HtmlBlock.class, true),
-	HTML_INLINE(HtmlInline.class, false),
-	IMAGE(Image.class, false),
-	INDENTED_CODE_BLOCK(IndentedCodeBlock.class, true),
-	LINK(Link.class, false),
-	LINK_REFERENCE_DEFINITION(LinkReferenceDefinition.class, false),
-	LIST_ITEM(ListItem.class, false),
-	ORDERED_LIST(OrderedList.class, true),
-	PARAGRAPH(Paragraph.class, true),
-	SOFT_LINE_BREAK(SoftLineBreak.class, false),
-	STRONG_EMPHASIS(StrongEmphasis.class, false),
-	UNDERLINE(StrongEmphasis.class, false),
-	TEXT(Text.class, false),
-	THEMATIC_BREAK(ThematicBreak.class, true),
+	BLOCK_QUOTE("block_quote", BlockQuote.class, true),
+	BULLET_LIST("unordered_list", BulletList.class, true, List.of("list")),
+	CODE("code_inline", Code.class, true, List.of("code")),
+	CUSTOM_BLOCK(null, CustomBlock.class, true),
+	CUSTOM_NODE(null, CustomNode.class, false),
+	STRIKETHROUGH("strikethrough", CustomNode.class, false),
+	DOCUMENT("document", Document.class, true),
+	EMPHASIS("emphasis", Emphasis.class, false),
+	FENCED_CODE_BLOCK("fenced_code_block", FencedCodeBlock.class, true, List.of("code", "code_block")),
+	HARD_LINE_BREAK(null, HardLineBreak.class, false),
+	H1("h1", Heading.class, true, List.of("header")),
+	H2("h2", Heading.class, true, List.of("header")),
+	H3("h3", Heading.class, true, List.of("header")),
+	H4("h4", Heading.class, true, List.of("header")),
+	H5("h5", Heading.class, true, List.of("header")),
+	H6("h6", Heading.class, true, List.of("header")),
+	HTML_BLOCK(null, HtmlBlock.class, true),
+	HTML_INLINE(null, HtmlInline.class, false),
+	IMAGE("image", Image.class, false),
+	INDENTED_CODE_BLOCK("indented_code_block", IndentedCodeBlock.class, true, List.of("code", "code_block")),
+	LINK("link", Link.class, false),
+	LINK_REFERENCE_DEFINITION("link_reference", LinkReferenceDefinition.class, false),
+	LIST_ITEM("list_item", ListItem.class, false),
+	ORDERED_LIST("ordered_list", OrderedList.class, true, List.of("list")),
+	PARAGRAPH("paragraph", Paragraph.class, true),
+	SOFT_LINE_BREAK(null, SoftLineBreak.class, false),
+	STRONG_EMPHASIS("strong_emphasis", StrongEmphasis.class, false),
+	UNDERLINE("underline", StrongEmphasis.class, false),
+	TEXT("text", Text.class, false),
+	THEMATIC_BREAK(null, ThematicBreak.class, true),
 	;
 	
+	private final String name;
 	private final Class<? extends Node> clazz;
 	private final boolean isBlock;
+	private final List<String> parentTypes;
 	
-	NodeType(Class<? extends Node> clazz, boolean isBlock) {
+	NodeType(String name, Class<? extends Node> clazz, boolean isBlock) {
+		this(name, clazz, isBlock, List.of());
+	}
+	
+	NodeType(@Nullable String name, Class<? extends Node> clazz, boolean isBlock, @NotNull List<String> parentTypes) {
+		this.name = name;
 		this.clazz = clazz;
 		this.isBlock = isBlock;
+		this.parentTypes = parentTypes;
 	}
 	
 	public static NodeType getByClass(Class<? extends Node> clazz) {
@@ -76,6 +89,20 @@ public enum NodeType {
 		}
 		
 		return NodeType.CUSTOM_NODE;
+	}
+	
+	public static List<NodeType> getByType(String type) {
+		List<NodeType> types = new ArrayList<>();
+		
+		for (NodeType enumValue : values()) {
+			if (enumValue.name == null) continue;
+			
+			if (enumValue.name.equals(type) || enumValue.parentTypes.contains(type)) {
+				types.add(enumValue);
+			}
+		}
+		
+		return types;
 	}
 	
 	public Class<? extends Node> getClazz() {

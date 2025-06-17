@@ -1,5 +1,6 @@
 package blue.endless.enoki.gui;
 
+import blue.endless.enoki.EnokiClient;
 import blue.endless.enoki.gui.widgets.AbstractMarkdownWidget;
 import blue.endless.enoki.gui.widgets.BlockContainerWidget;
 import blue.endless.enoki.gui.widgets.FlowContainerWidget;
@@ -7,8 +8,8 @@ import blue.endless.enoki.gui.widgets.HeadingWidget;
 import blue.endless.enoki.gui.widgets.ImageWidget;
 import blue.endless.enoki.gui.widgets.TextSpanWidget;
 import blue.endless.enoki.markdown.DocNode;
-import blue.endless.enoki.markdown.LayoutStyle;
 import blue.endless.enoki.markdown.NodeType;
+import blue.endless.enoki.markdown.styles.LayoutStyle;
 import blue.endless.enoki.text.WordWrap;
 import com.mojang.blaze3d.textures.GpuTexture;
 import net.fabricmc.api.EnvType;
@@ -40,17 +41,7 @@ public class MarkdownWidget extends ContainerWidget {
 	private DocNode document;
 	private final WordWrap wordWrap;
 	private TextRenderer font;
-	private Map<NodeType, LayoutStyle> layoutMap = Map.of(
-			NodeType.DOCUMENT, LayoutStyle.DOCUMENT,
-			NodeType.H1, LayoutStyle.H1,
-			NodeType.EMPHASIS, LayoutStyle.ITALIC,
-			NodeType.STRONG_EMPHASIS, LayoutStyle.BOLD,
-			NodeType.STRIKETHROUGH, LayoutStyle.STRIKETHROUGH,
-			NodeType.UNDERLINE, LayoutStyle.UNDERLINE,
-			NodeType.PARAGRAPH, LayoutStyle.PARAGRAPH,
-			NodeType.BLOCK_QUOTE, LayoutStyle.BLOCK_QUOTE,
-			NodeType.LINK, LayoutStyle.LINK
-			);
+	private Map<@NotNull NodeType, LayoutStyle> layoutMap;
 	
 	private List<ClickableWidget> currentChildren = new ArrayList<>();
 	
@@ -59,6 +50,13 @@ public class MarkdownWidget extends ContainerWidget {
 		
 		this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
+		this.layoutMap = EnokiClient.styleManager.getStyleSheet(Identifier.of("enoki:styles/test.json")).get().bake();
+		for (Map.Entry<NodeType, LayoutStyle> entry : this.layoutMap.entrySet()) {
+			NodeType type = entry.getKey();
+			LayoutStyle style = entry.getValue();
+			
+			LOGGER.info("{}: {}", type, style);
+		}
 	}
 	
 	/*
@@ -90,7 +88,7 @@ public class MarkdownWidget extends ContainerWidget {
 		this.rebuildWidgets();
 	}
 	
-	public void setLayoutMap(Map<NodeType, LayoutStyle> layoutMap) {
+	public void setLayoutMap(Map<@NotNull NodeType, LayoutStyle> layoutMap) {
 		this.layoutMap = layoutMap;
 		this.rebuildWidgets();
 	}
@@ -152,8 +150,10 @@ public class MarkdownWidget extends ContainerWidget {
 		//Deque<BlockContext> contexts = new ArrayDeque<>();
 		//contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
 
+		LayoutStyle innerStyle = this.layoutMap.get(NodeType.DOCUMENT);
+		
 		this.currentChildren.clear();
-		ClickableWidget rootWidget = buildBlock(document, getWidth(), LayoutStyle.DOCUMENT);
+		ClickableWidget rootWidget = buildBlock(document, getWidth(), innerStyle);
 		System.out.println("Built document block: "+rootWidget.getWidth()+" x "+rootWidget.getHeight());
 		this.currentChildren.add(rootWidget);
 		//Position finalPosition = buildWidgets(document, Position.of(getX(), getY()), contexts, NodeStyle.NORMAL);
@@ -163,6 +163,21 @@ public class MarkdownWidget extends ContainerWidget {
 		//finalPosition = finalPosition.withOffset(0, rect.height());
 		
 		this.setHeight(rootWidget.getHeight());
+	}
+	
+	private LayoutStyle getDefaultedInnerStyle(NodeType type, NodeType defaultType, LayoutStyle outerStyle) {
+		LayoutStyle innerStyle = layoutMap.getOrDefault(type, null);
+		if (innerStyle == null) {
+			innerStyle = layoutMap.get(defaultType);
+		}
+		
+		if (innerStyle == null) {
+			innerStyle = LayoutStyle.defaulted();
+		}
+
+		innerStyle = innerStyle.copy();
+		innerStyle.applyDefaults(outerStyle);
+		return innerStyle;
 	}
 	
 	private ClickableWidget buildBlock(DocNode node, int width, LayoutStyle externalStyle) {
@@ -175,15 +190,14 @@ public class MarkdownWidget extends ContainerWidget {
 		
 		
 		if (result instanceof BlockContainerWidget block) for(DocNode child : node.children()) {
-			LayoutStyle childStyle = layoutMap.getOrDefault(child.type(), LayoutStyle.TEXT)
-					.withDefaults(externalStyle);
+			LayoutStyle innerStyle = this.getDefaultedInnerStyle(child.type(), NodeType.TEXT, externalStyle);
 			
 			if (child.type().isBlock()) {
 				//TODO: margins? Indents?
-				ClickableWidget childBlock = buildBlock(child, this.getWidth(), childStyle);
+				ClickableWidget childBlock = buildBlock(child, this.getWidth(), innerStyle);
 				block.add(childBlock);
 			} else {
-				ClickableWidget childFlow = buildFlow(child, this.getWidth(), childStyle);
+				ClickableWidget childFlow = buildFlow(child, this.getWidth(), innerStyle);
 				
 				block.add(childFlow);
 			}
@@ -193,7 +207,7 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	private ClickableWidget buildFlow(DocNode node, int width, LayoutStyle externalStyle) {
-		System.out.println("Building flow element of type "+node.type()+" with style 0x"+Integer.toHexString(externalStyle.style().style()));
+		System.out.println("Building flow element of type " + node.type() + " with style" + externalStyle);
 		AbstractMarkdownWidget result = switch (node.type()) {
 			case TEXT -> new TextSpanWidget(node.text(), externalStyle, MinecraftClient.getInstance().textRenderer);
 			
@@ -203,9 +217,8 @@ public class MarkdownWidget extends ContainerWidget {
 		
 		if (result instanceof FlowContainerWidget container) {
 			for(DocNode child : node.children()) {
-				LayoutStyle childStyle = layoutMap.getOrDefault(child.type(), LayoutStyle.TEXT)
-						.withDefaults(externalStyle);
-				container.add(buildFlow(child, width, childStyle));
+				LayoutStyle innerStyle = this.getDefaultedInnerStyle(child.type(), NodeType.TEXT, externalStyle);
+				container.add(buildFlow(child, width, innerStyle));
 			}
 		}
 		
