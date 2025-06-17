@@ -40,7 +40,6 @@ public class LineWidget extends AbstractMarkdownWidget {
 		} else {
 			child.setPosition(children.getLast().getRight(), 0);
 		}
-		System.out.println("Child added to line with x: "+child.getX());
 		children.add(child);
 		this.height = Math.max(this.height, child.getHeight());
 	}

@@ -56,6 +56,10 @@ public abstract class AbstractMarkdownWidget extends ClickableWidget implements 
 		}
 	}
 	
+	public LayoutStyle getStyle() {
+		return style;
+	}
+	
 	@Override
 	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
 		if ((backgroundColor & 0xFF_000000) != 0) {
