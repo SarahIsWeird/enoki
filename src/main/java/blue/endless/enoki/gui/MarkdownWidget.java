@@ -29,6 +29,7 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +40,7 @@ public class MarkdownWidget extends ContainerWidget {
 	private static final Logger LOGGER = LogManager.getLogger(MarkdownWidget.class);
 	
 	private DocNode document;
-	private final WordWrap wordWrap;
+	//private final WordWrap wordWrap;
 	private TextRenderer font;
 	private Map<@NotNull NodeType, LayoutStyle> layoutMap;
 	
@@ -48,8 +49,9 @@ public class MarkdownWidget extends ContainerWidget {
 	public MarkdownWidget(int x, int y, int width) {
 		super(x, y, width, 0, Text.empty());
 		
-		this.wordWrap = new WordWrap();
+		//this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
+		//this.layoutMap = new HashMap<>();
 		this.layoutMap = EnokiClient.styleManager.getStyleSheet(Identifier.of("enoki:styles/test.json")).get().bake();
 		for (Map.Entry<NodeType, LayoutStyle> entry : this.layoutMap.entrySet()) {
 			NodeType type = entry.getKey();
@@ -101,15 +103,7 @@ public class MarkdownWidget extends ContainerWidget {
 	
 	@Override
 	public void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		/*
-		dc.getMatrices().push();
-		dc.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
-		
-		for (ClickableWidget child : currentChildren) {
-			child.render(dc, mouseX, mouseY, deltaTicks);
-		}
 
-		dc.getMatrices().pop();*/
 		context.fill(getX(), getY(), getX() + width, getY() + height, Colors.GRAY);
 		
 		context.getMatrices().push();
@@ -151,6 +145,7 @@ public class MarkdownWidget extends ContainerWidget {
 		//contexts.push(new BlockContext(getX() + 8, getY() + 8, getWidth() - 24)); // TODO: This should be controlled by insets, and should probably default to 8 on all sides.
 
 		LayoutStyle innerStyle = this.layoutMap.get(NodeType.DOCUMENT);
+		if (innerStyle == null) innerStyle = LayoutStyle.empty();
 		
 		this.currentChildren.clear();
 		ClickableWidget rootWidget = buildBlock(document, getWidth(), innerStyle);
@@ -207,7 +202,7 @@ public class MarkdownWidget extends ContainerWidget {
 	}
 	
 	private ClickableWidget buildFlow(DocNode node, int width, LayoutStyle externalStyle) {
-		System.out.println("Building flow element of type " + node.type() + " with style" + externalStyle);
+		System.out.println("Building flow element of type " + node.type() + " with style " + externalStyle);
 		AbstractMarkdownWidget result = switch (node.type()) {
 			case TEXT -> new TextSpanWidget(node.text(), externalStyle, MinecraftClient.getInstance().textRenderer);
 			

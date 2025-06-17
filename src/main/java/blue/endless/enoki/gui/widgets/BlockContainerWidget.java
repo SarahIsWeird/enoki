@@ -50,6 +50,7 @@ public class BlockContainerWidget extends AbstractMarkdownWidget implements Resi
 	
 	private void addInline(ClickableWidget widget) {
 		if (widget instanceof Splittable splittable) {
+			System.out.println("Adding splittable inline widget with width "+widget.getWidth()+" and message "+widget.getMessage().getLiteralString());
 			/*
 			 * We will operate in two phases.
 			 * 
@@ -60,8 +61,10 @@ public class BlockContainerWidget extends AbstractMarkdownWidget implements Resi
 			LineWidget lastLine = getOrCreateLine();
 			
 			if (!lastLine.isEmpty()) {
+				System.out.println("Filling in remainder of a non-empty previous line...");
 				Result r = splittable.split(lastLine.getAvailableSpace(), false);
 				if (r.success()) {
+					System.out.println("Succeeded, first-line is "+r.result().getMessage().getLiteralString());
 					lastLine.add(r.result());
 					remainder = r.leftover();
 				}
@@ -74,14 +77,14 @@ public class BlockContainerWidget extends AbstractMarkdownWidget implements Resi
 			 * we need to hard-wrap it.
 			 */
 			while(remainder != null) {
+				System.out.println("Filling in an entire line");
 				// Try to fit against the full width of the line
 				if (remainder.getWidth() < this.width) {
+					System.out.println("Added entire remainder: "+remainder.getMessage().getLiteralString());
 					lastLine.add(remainder);
 					remainder = null;
-					break;
-				}
-				
-				if (remainder instanceof Splittable sp) {
+				} else if (remainder instanceof Splittable sp) {
+					System.out.println("Splitting remainder...");
 					Result r = sp.split(this.width, false);
 					
 					if (!r.success()) {
@@ -92,12 +95,11 @@ public class BlockContainerWidget extends AbstractMarkdownWidget implements Resi
 					lastLine = newLine();
 						
 					remainder = r.leftover();
-					break;
 					
 				} else {
+					System.out.println("Remainder is unsplittable. Stuffing it on its own line.");
 					lastLine.add(remainder);
 					remainder = null;
-					break;
 				}
 			}
 			
