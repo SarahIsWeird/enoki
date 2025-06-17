@@ -40,6 +40,7 @@ public class FlowContainerWidget extends AbstractMarkdownWidget implements Split
 		if (children.isEmpty()) return Result.everythingFits(this);
 		
 		int firstOnNextLine = getFirstNonFittingWidget(lineWidth);
+		System.out.println("Splitting FlowContainer. First non-fitting widget: "+firstOnNextLine);
 		
 		// If everything fits, we have an easy solution.
 		if (firstOnNextLine == -1) return Result.everythingFits(this);
