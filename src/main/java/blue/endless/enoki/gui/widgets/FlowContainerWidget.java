@@ -95,7 +95,8 @@ public class FlowContainerWidget extends AbstractMarkdownWidget implements Split
 	
 	public FlowContainerWidget copyWithChildren(List<ClickableWidget> children) {
 		FlowContainerWidget flow = new FlowContainerWidget(style);
-		flow.children.addAll(children);
+		for(ClickableWidget child : children) flow.add(child);
+		//flow.children.addAll(children);
 		return flow;
 	}
 	

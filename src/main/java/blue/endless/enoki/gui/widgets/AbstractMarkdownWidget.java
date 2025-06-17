@@ -65,7 +65,7 @@ public abstract class AbstractMarkdownWidget extends ClickableWidget implements 
 		for(ClickableWidget widget : this) {
 			
 			context.getMatrices().push();
-			context.getMatrices().translate(this.getX(), this.getY(), 0);
+			context.getMatrices().translate(widget.getX(), widget.getY(), 0);
 			
 			//context.enableScissor(0, 0, width, height);
 			

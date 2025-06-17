@@ -42,6 +42,12 @@ public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable
 	}
 	
 	@Override
+	public void setPosition(int x, int y) {
+		System.out.println("Text \""+text+"\" positioned to "+x+", "+y);
+		super.setPosition(x, y);
+	}
+	
+	@Override
 	public Result split(int lineWidth, boolean force) {
 		WordWrap wrap = new WordWrap();
 		
