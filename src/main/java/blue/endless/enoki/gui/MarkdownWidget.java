@@ -54,8 +54,8 @@ public class MarkdownWidget extends ContainerWidget {
 		Identifier defaultSheetId = Identifier.of("enoki:default");
 		Identifier testSheetId = Identifier.of("enoki:test");
 		
-		LayoutStyleSheet defaultSheet = EnokiClient.styleManager.getStyleSheet(defaultSheetId).get();
-		LayoutStyleSheet testSheet = EnokiClient.styleManager.getStyleSheet(testSheetId).get();
+		LayoutStyleSheet defaultSheet = EnokiClient.STYLE_MANAGER.getStyleSheet(defaultSheetId).get();
+		LayoutStyleSheet testSheet = EnokiClient.STYLE_MANAGER.getStyleSheet(testSheetId).get();
 		
 		testSheet.applyDefaults(defaultSheet);
 		this.layoutMap = testSheet.bake();
@@ -230,6 +230,7 @@ public class MarkdownWidget extends ContainerWidget {
 				} else {
 					innerStyle = this.getDefaultedInnerStyle(child.type(), NodeType.TEXT, externalStyle);
 				}
+				
 				container.add(buildFlow(child, width, innerStyle));
 			}
 		}

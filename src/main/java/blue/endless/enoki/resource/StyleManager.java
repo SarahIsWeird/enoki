@@ -19,17 +19,23 @@ import java.util.Map;
 import java.util.Optional;
 
 public class StyleManager {
-	private static final String PATH_PREFIX = "markdown/styles";
+	private static final String RESOURCE_PATH = "markdown/styles";
+	private static final String PATH_PREFIX = RESOURCE_PATH + "/";
 	private static final String PATH_SUFFIX = ".json";
 	
 	protected final Map<Identifier, LayoutStyleSheet> styleSheets = new HashMap<>();
 	
 	public Optional<LayoutStyleSheet> getStyleSheet(Identifier id) {
-		return Optional.ofNullable(styleSheets.getOrDefault(id, null));
+		return Optional.ofNullable(styleSheets.getOrDefault(id, null))
+			.map(LayoutStyleSheet::copy);
 	}
 	
-	public void putStyleSheet(Identifier id, LayoutStyleSheet style) {
+	public void registerStyleSheet(Identifier id, LayoutStyleSheet style) {
 		styleSheets.put(id, style);
+	}
+	
+	public void registerStyleSheet(Map.Entry<Identifier, LayoutStyleSheet> entry) {
+		this.registerStyleSheet(entry.getKey(), entry.getValue());
 	}
 
 	public ReloadListener getReloadListener() {
@@ -41,16 +47,16 @@ public class StyleManager {
 		
 		@Override
 		public Identifier getFabricId() {
-			return Identifier.of("enoki", "style_manager_reload_listener");
+			return Identifier.of("enoki", "style_sheet_loader");
 		}
 		
 		private static Optional<Identifier> resolveStyleId(Identifier resourceId) {
 			String path = resourceId.getPath();
-			if (!path.startsWith(PATH_PREFIX + "/") || !path.endsWith(PATH_SUFFIX)) {
+			if (!path.startsWith(PATH_PREFIX) || !path.endsWith(PATH_SUFFIX)) {
 				return Optional.empty();
 			}
 			
-			path = path.substring(PATH_PREFIX.length() + 1); // Account for slash
+			path = path.substring(PATH_PREFIX.length());
 			path = path.substring(0, path.length() - PATH_SUFFIX.length());
 			
 			if (path.isEmpty()) return Optional.empty();
@@ -59,33 +65,41 @@ public class StyleManager {
 
 		@Override
 		public void reload(ResourceManager manager) {
-			Map<Identifier, Resource> resources = manager.findResources(PATH_PREFIX,
-				identifier -> identifier.getPath().endsWith(PATH_SUFFIX));
+			styleSheets.clear();
+			
+			Map<Identifier, Resource> resources = manager.findResources(
+				RESOURCE_PATH,
+				identifier -> identifier.getPath().endsWith(PATH_SUFFIX)
+			);
 			
 			for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
-				Optional<Identifier> idResult = resolveStyleId(entry.getKey());
-				if (idResult.isEmpty()) {
-					LOGGER.error("Invalid style json resource id: {}", entry.getKey());
-					continue;
-				}
-				
-				Identifier id = idResult.get();
-				Resource resource = entry.getValue();
-				
-				try (BufferedReader reader = resource.getReader()) {
-					JsonElement element = JsonHelper.deserialize(reader);
-					DataResult<LayoutStyleSheet> result = LayoutStyleSheet.CODEC.parse(JsonOps.INSTANCE, element);
-					if (result.isSuccess()) {
-						LOGGER.info("Loaded style sheet for {}", id);
-						StyleManager.this.styleSheets.put(id, result.getOrThrow());
-					} else if (result.error().isPresent()) {
-						LOGGER.error("Failed to load style sheet for {}: {}", id, result.error().get());
-					} else {
-						LOGGER.error("Failed to load style sheet for {}!", id);
-					}
-				} catch (IOException e) {
-					LOGGER.error("Failed to load style sheet for {}!", id, e);
-				}
+				processResource(entry.getKey(), entry.getValue());
+			}
+		}
+		
+		private void processResource(Identifier resourceId, Resource resource) {
+			loadStyleSheet(resourceId, resource)
+				.ifSuccess(StyleManager.this::registerStyleSheet)
+				.ifError(error -> {
+					LOGGER.error("Failed to load style sheet for {}:", resourceId);
+					LOGGER.error(error);
+				});
+		}
+		
+		private DataResult<Map.Entry<Identifier, LayoutStyleSheet>> loadStyleSheet(Identifier resourceId, Resource resource) {
+			Optional<Identifier> idResult = resolveStyleId(resourceId);
+			if (idResult.isEmpty()) {
+				return DataResult.error(() -> "Invalid resource id for style sheet: %s".formatted(resourceId));
+			}
+
+			Identifier styleId = idResult.get();
+
+			try (BufferedReader reader = resource.getReader()) {
+				JsonElement element = JsonHelper.deserialize(reader);
+				return LayoutStyleSheet.CODEC.parse(JsonOps.INSTANCE, element)
+					.map(sheet -> Map.entry(styleId, sheet));
+			} catch (IOException e) {
+				return DataResult.error(e::toString);
 			}
 		}
 	}

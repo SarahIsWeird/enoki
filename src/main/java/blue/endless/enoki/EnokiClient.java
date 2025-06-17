@@ -12,14 +12,14 @@ import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 
 public class EnokiClient implements ClientModInitializer {
-	public static StyleManager styleManager = new StyleManager();
+	public static final StyleManager STYLE_MANAGER = new StyleManager();
 	public static Logger LOGGER = LoggerFactory.getLogger("Enoki");
 	
 	@Override
 	public void onInitializeClient() {
 		LOGGER.info("***************************CLIENT INIT*****************************");
 		ResourceManagerHelper.get(ResourceType.CLIENT_RESOURCES)
-			.registerReloadListener(styleManager.getReloadListener());
+			.registerReloadListener(STYLE_MANAGER.getReloadListener());
 	}
 	
 	public static LocalizedResourceManager<DocNode> registerResourceManager(Identifier id) {

@@ -87,4 +87,14 @@ public class LayoutStyleSheet {
 		
 		return bakedStyles;
 	}
+
+	public LayoutStyleSheet copy() {
+		LayoutStyleSheet copy = new LayoutStyleSheet();
+		
+		for (Map.Entry<NodeCategory, LayoutStyle> entry : this.styles.entrySet()) {
+			copy.put(entry.getKey(), entry.getValue().copy());
+		}
+		
+		return copy;
+	}
 }
