@@ -1,6 +1,5 @@
 package blue.endless.enoki.markdown.styles;
 
-import blue.endless.enoki.markdown.styles.codec_intermediates.DecorationsIntermediate;
 import blue.endless.enoki.markdown.styles.codec_intermediates.MarginsIntermediate;
 import blue.endless.enoki.markdown.styles.properties.StyleProperties;
 import blue.endless.enoki.markdown.styles.properties.StyleProperty;
@@ -18,33 +17,6 @@ import java.util.Objects;
 import java.util.Optional;
 
 public class LayoutStyle {
-	/*
-	{
-		"size": 1.0,
-		// "color": -1,
-		// "color": [ 1.0, 0.0, 0.066, 0.133 ],
-		// "color": "f012",
-		// "color": "001122",
-		"color": "#ff001122",
-		"style": {
-			"bold": true,
-			"italic": true,
-			"underline": false,
-			"strikethrough": false,
-			"shadow": true
-		},
-		"indent": 0,
-		// "margins": 0,
-		// "margins": [ 0, 1, 2, 3 ],
-		"margins": {
-			"top": 0,
-			"right": 1,
-			"bottom": 2,
-			"left": 3
-		}
-	}
-	 */
-	
 	public static final Codec<LayoutStyle> CODEC =
 		RecordCodecBuilder.create(inst -> inst.group(
 			Codec.FLOAT.optionalFieldOf("size")
@@ -53,17 +25,37 @@ public class LayoutStyle {
 				.forGetter(style -> style.get(StyleProperties.COLOR)),
 			CodecUtils.COLOR_CODEC.optionalFieldOf("background_color")
 				.forGetter(style -> style.get(StyleProperties.BACKGROUND_COLOR)),
-			DecorationsIntermediate.CODEC.optionalFieldOf("text_styles")
-				.forGetter(DecorationsIntermediate::of),
-			MarginsIntermediate.CODEC.optionalFieldOf("margins")
+			Codec.BOOL.optionalFieldOf("bold")
+				.forGetter(style -> style.get(StyleProperties.BOLD)),
+			Codec.BOOL.optionalFieldOf("italic")
+				.forGetter(style -> style.get(StyleProperties.ITALIC)),
+			Codec.BOOL.optionalFieldOf("underline")
+				.forGetter(style -> style.get(StyleProperties.UNDERLINE)),
+			Codec.BOOL.optionalFieldOf("strikethrough")
+				.forGetter(style -> style.get(StyleProperties.STRIKETHROUGH)),
+			Codec.BOOL.optionalFieldOf("shadow")
+				.forGetter(style -> style.get(StyleProperties.SHADOW)),
+			MarginsIntermediate.CODEC.optionalFieldOf("margin")
 				.forGetter(MarginsIntermediate::of)
-		).apply(inst, (size, color, backgroundColor, decorations, margins) -> {
+		).apply(inst, (size,
+					   color,
+					   backgroundColor,
+					   bold,
+					   italic,
+					   underline,
+					   strikethrough,
+					   shadow,
+					   margins) -> {
 			LayoutStyle style = new LayoutStyle();
 			
 			size.ifPresent(theSize -> style.put(StyleProperties.SIZE, theSize));
 			color.ifPresent(theColor -> style.put(StyleProperties.COLOR, theColor));
 			backgroundColor.ifPresent(theColor -> style.put(StyleProperties.BACKGROUND_COLOR, theColor));
-			decorations.ifPresent(theDecorations -> theDecorations.applyTo(style));
+			bold.ifPresent(theBold -> style.put(StyleProperties.BOLD, theBold));
+			italic.ifPresent(theItalic -> style.put(StyleProperties.ITALIC, theItalic));
+			underline.ifPresent(theUnderline -> style.put(StyleProperties.UNDERLINE, theUnderline));
+			strikethrough.ifPresent(theStrikethrough -> style.put(StyleProperties.STRIKETHROUGH, theStrikethrough));
+			shadow.ifPresent(theShadow -> style.put(StyleProperties.SHADOW, theShadow));
 			margins.ifPresent(theMargins -> theMargins.applyTo(style));
 			
 			return style;

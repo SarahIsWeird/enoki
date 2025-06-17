@@ -176,13 +176,10 @@ public class MarkdownWidget extends ContainerWidget {
 		if (innerStyle == null) {
 			innerStyle = LayoutStyle.defaulted();
 		}
-		
-		outerStyle = outerStyle.copy();
-		outerStyle.applyDefaults(innerStyle);
 
-//		innerStyle = innerStyle.copy();
-//		innerStyle.applyDefaults(outerStyle);
-		return outerStyle;
+		innerStyle = innerStyle.copy();
+		innerStyle.applyDefaults(outerStyle);
+		return innerStyle;
 	}
 	
 	private ClickableWidget buildBlock(DocNode node, int width, LayoutStyle externalStyle) {
@@ -193,19 +190,20 @@ public class MarkdownWidget extends ContainerWidget {
 			default -> new BlockContainerWidget(width, externalStyle);
 		};
 		
+		if (!(result instanceof BlockContainerWidget block)) return result;
 		
-		if (result instanceof BlockContainerWidget block) for(DocNode child : node.children()) {
+		for (DocNode child : node.children()) {
 			LayoutStyle innerStyle = this.getDefaultedInnerStyle(child.type(), NodeType.TEXT, externalStyle);
 			
+			ClickableWidget childWidget;
 			if (child.type().isBlock()) {
 				//TODO: margins? Indents?
-				ClickableWidget childBlock = buildBlock(child, this.getWidth(), innerStyle);
-				block.add(childBlock);
+				childWidget = buildBlock(child, this.getWidth(), innerStyle);
 			} else {
-				ClickableWidget childFlow = buildFlow(child, this.getWidth(), innerStyle);
-				
-				block.add(childFlow);
+				childWidget = buildFlow(child, this.getWidth(), innerStyle);
 			}
+			
+			block.add(childWidget);
 		}
 		
 		return result;

@@ -14,8 +14,6 @@ public class StyleProperties {
 	public static final BooleanStyleProperty STRIKETHROUGH = BooleanStyleProperty.of("strikethrough");
 	public static final BooleanStyleProperty SHADOW = BooleanStyleProperty.of("shadow");
 	
-	public static final IntStyleProperty INDENT = IntStyleProperty.nonNegativeOnly("indent");
-	
 	public static final IntStyleProperty MARGIN_TOP = IntStyleProperty.of("margin_top");
 	public static final IntStyleProperty MARGIN_RIGHT = IntStyleProperty.of("margin_right");
 	public static final IntStyleProperty MARGIN_BOTTOM = IntStyleProperty.of("margin_bottom");
@@ -26,7 +24,6 @@ public class StyleProperties {
 			SIZE,
 			COLOR, BACKGROUND_COLOR,
 			BOLD, ITALIC, UNDERLINE, STRIKETHROUGH, SHADOW,
-			INDENT,
 			MARGIN_TOP, MARGIN_RIGHT, MARGIN_BOTTOM, MARGIN_LEFT
 		);
 }

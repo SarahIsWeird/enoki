@@ -22,7 +22,7 @@ public class BlockQuoteWidget extends AbstractMarkdownWidget {
 	public BlockQuoteWidget(int x, int y, int width, int height, int color, LayoutStyle style, List<ClickableWidget> children) {
 		super(x, y, width, height, Text.empty(), style);
 		this.children = children;
-		this.lineX = x - style.getOrDefault(StyleProperties.INDENT, 0);
+		this.lineX = x - style.getOrDefault(StyleProperties.MARGIN_LEFT, 0);
 		
 		this.color = color;
 	}

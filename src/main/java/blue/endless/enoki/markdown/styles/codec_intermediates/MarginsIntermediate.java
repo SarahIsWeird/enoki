@@ -15,13 +15,24 @@ public record MarginsIntermediate(
 	Optional<Integer> bottom,
 	Optional<Integer> left
 ) {
-	public static final Codec<MarginsIntermediate> CODEC =
+	private static final Codec<MarginsIntermediate> RECORD_CODEC =
 		RecordCodecBuilder.create(instance -> instance.group(
 			Codec.INT.optionalFieldOf("top").forGetter(MarginsIntermediate::top),
 			Codec.INT.optionalFieldOf("right").forGetter(MarginsIntermediate::right),
 			Codec.INT.optionalFieldOf("bottom").forGetter(MarginsIntermediate::bottom),
 			Codec.INT.optionalFieldOf("left").forGetter(MarginsIntermediate::left)
 		).apply(instance, MarginsIntermediate::new));
+	
+	public static final Codec<MarginsIntermediate> CODEC =
+		Codec.withAlternative(RECORD_CODEC, Codec.INT, MarginsIntermediate::allSides);
+	
+	private static MarginsIntermediate allSides(int margin) {
+		return MarginsIntermediate.of(margin, margin, margin, margin);
+	}
+	
+	private static MarginsIntermediate of(int top, int right, int bottom, int left) {
+		return new MarginsIntermediate(Optional.of(top), Optional.of(right), Optional.of(bottom), Optional.of(left));
+	}
 	
 	public static Optional<MarginsIntermediate> of(LayoutStyle provider) {
 		return Optional.of(new MarginsIntermediate(

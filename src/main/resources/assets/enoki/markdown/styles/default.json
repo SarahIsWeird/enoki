@@ -1,5 +1,62 @@
 {
-	"default": {
-		"color": [ 1.0, 0.5, 0.7, 0.8 ]
+	"document": {
+		"margin": 8
+	},
+	"heading": {
+		"bold": true,
+		"margin": {
+			"bottom": 4
+		}
+	},
+	"h1": {
+		"size": 1.5,
+		"color": 5636095
+	},
+	"h2": {
+		"size": 1.333,
+		"color": 16777045
+	},
+	"h3": {
+		"size": 1.166,
+		"color": 16733695
+	},
+	"h4": {
+		"size": 1.0
+	},
+	"h5": {
+		"bold": false,
+		"size": 0.8
+	},
+	"h6": {
+		"bold": false,
+		"size": 0.666
+	},
+	
+	"paragraph": {
+		"margin": {
+			"bottom": 4
+		}
+	},
+	
+	"block_quote": {
+		"indent": 8
+	},
+	
+	"emphasis": {
+		"italic": true
+	},
+	"strong_emphasis": {
+		"bold": true
+	},
+	"underline": {
+		"underline": true
+	},
+	"strikethrough": {
+		"strikethrough": true
+	},
+	
+	"link": {
+		"color": "#0000ff",
+		"underline": true
 	}
 }

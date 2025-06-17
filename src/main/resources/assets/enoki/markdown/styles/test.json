@@ -1,7 +1,3 @@
 {
-	"default": {
-		"text_styles": {
-			"bold": true
-		}
-	}
+	"default": {}
 }
