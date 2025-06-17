@@ -39,16 +39,12 @@ public enum NodeCategory implements StringIdentifiable {
 	ORDERED_LIST(NodeType.ORDERED_LIST, LIST),
 	UNORDERED_LIST(NodeType.BULLET_LIST, LIST),
 	
-	TEXT(NodeType.TEXT),
-	// TODO: Should these really have TEXT as parent?
-	// They only make sense in the context of text, but is there something
-	// where this parent would be undesirable?
-	EMPHASIS(NodeType.EMPHASIS, TEXT),
-	LINK(NodeType.LINK, TEXT),
-	LINK_REFERENCE_DEFINITION(NodeType.LINK_REFERENCE_DEFINITION, TEXT),
-	STRIKETHROUGH(NodeType.STRIKETHROUGH, TEXT),
-	STRONG_EMPHASIS(NodeType.STRONG_EMPHASIS, TEXT),
-	UNDERLINE(NodeType.UNDERLINE, TEXT),
+	EMPHASIS(NodeType.EMPHASIS),
+	LINK(NodeType.LINK),
+	LINK_REFERENCE_DEFINITION(NodeType.LINK_REFERENCE_DEFINITION),
+	STRIKETHROUGH(NodeType.STRIKETHROUGH),
+	STRONG_EMPHASIS(NodeType.STRONG_EMPHASIS),
+	UNDERLINE(NodeType.UNDERLINE),
 	;
 	
 	public static final Codec<NodeCategory> CODEC =
