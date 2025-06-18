@@ -41,12 +41,12 @@ public class StyleReloadListener extends AsyncResourceReloader<LayoutStyleSheet>
 	}
 
 	@Override
-	protected boolean isResourcePertinent(Identifier resourceId) {
+	protected boolean shouldLoad(Identifier resourceId) {
 		return resourceId.getPath().endsWith(PATH_SUFFIX);
 	}
 
 	@Override
-	protected Optional<Identifier> toInGameId(Identifier resourceId) {
+	protected Optional<Identifier> toRegistryId(Identifier resourceId) {
 		String path = resourceId.getPath();
 		if (!path.startsWith(PATH_PREFIX) || !path.endsWith(PATH_SUFFIX)) {
 			return Optional.empty();

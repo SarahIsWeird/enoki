@@ -1,62 +1,63 @@
 package blue.endless.enoki.utils.resources;
 
-import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
+import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourceReloader;
 import net.minecraft.util.Identifier;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
-public abstract class AsyncResourceReloader<R> implements SimpleResourceReloadListener<List<AsyncResource<R>>> {
+public abstract class AsyncResourceReloader<R> implements IdentifiableResourceReloadListener {
 	protected abstract String getResourcePath();
-	protected abstract boolean isResourcePertinent(Identifier resourceId);
+	protected abstract boolean shouldLoad(Identifier resourceId);
 	
-	protected Optional<Identifier> toInGameId(Identifier resourceId) {
+	protected Optional<Identifier> toRegistryId(Identifier resourceId) {
 		return Optional.of(resourceId);
 	}
 	
-	protected abstract Optional<R> load(Identifier inGameId, Resource resource);
+	protected abstract Optional<R> load(Identifier registryId, Resource resource);
 	
 	protected void beforeApply() {}
-	protected abstract void apply(Identifier inGameId, R data);
+	protected abstract void apply(Identifier registryId, R data);
 	protected void afterApply() {}
 	
-	@Override
-	public CompletableFuture<List<AsyncResource<R>>> load(ResourceManager manager, Executor executor) {
-		return CompletableFuture.supplyAsync(() -> 
-				manager.findResources(getResourcePath(), this::isResourcePertinent)
-					.entrySet()
-					.stream()
-					
-					// We want to work with AsyncResources, since its API is nicer than Map.Entry
-					.map(AsyncResource::of)
-					
-					// Resolve the in game ids, and only continue if the optional is present
-					.<AsyncResource<Resource>>mapMulti((resource, consumer) ->
-						this.toInGameId(resource.id())
-							.map(resource::withId)
-							.ifPresent(consumer))
-					
-					// Let the child load the resource, and only continue if the optional is present
-					.<AsyncResource<R>>mapMulti((resource, consumer) ->
-						this.load(resource.id(), resource.resource())
-							.map(resource::withResource)
-							.ifPresent(consumer))
-					.toList(),
-			executor);
+	public CompletableFuture<Void> reload(ResourceReloader.Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
+		CompletableFuture<List<IdentifiedResource<R>>> future = CompletableFuture.supplyAsync(() -> prepareResources(manager), prepareExecutor);
+		var combinedFuture = future
+				.thenCompose(synchronizer::whenPrepared)
+				.thenAcceptAsync(this::applyResources, applyExecutor);
+		
+		return combinedFuture;
 	}
-
-	@Override
-	public CompletableFuture<Void> apply(List<AsyncResource<R>> resources, ResourceManager manager, Executor executor) {
-		return CompletableFuture.runAsync(() -> {
-			this.beforeApply();
+	
+	public List<IdentifiedResource<R>> prepareResources(ResourceManager manager) {
+		Map<Identifier, Resource> resources = manager.findResources(getResourcePath(), this::shouldLoad);
+		List<IdentifiedResource<R>> result = new ArrayList<>();
+		resources.forEach((Identifier id, Resource res) -> {
+			Optional<Identifier> registryId = toRegistryId(id);
+			if (registryId.isEmpty()) return;
+			Optional<R> domainObject = load(registryId.get(), res);
+			if (domainObject.isEmpty()) return;
 			
-			resources.forEach(resource -> this.apply(resource.id(), resource.resource()));
-			
-			this.afterApply();
-		}, executor);
+			result.add(new IdentifiedResource<>(registryId.get(), domainObject.get()));
+		});
+		
+		return result;
 	}
+	
+	public void applyResources(List<IdentifiedResource<R>> resources) {
+		this.beforeApply();
+		
+		resources.forEach(resource -> this.apply(resource.id(), resource.resource()));
+		
+		this.afterApply();
+	}
+	
+	private record IdentifiedResource<R>(Identifier id, R resource) {}
 }
