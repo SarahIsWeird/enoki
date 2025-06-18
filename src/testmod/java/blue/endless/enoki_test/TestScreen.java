@@ -25,7 +25,7 @@ public class TestScreen extends Screen {
 		
 		if (this.markdownWidget == null) {
 			markdownWidget = new ScrollableMarkdownWidget(50, 50, width - 100, height - 100);
-			DocNode document = EnokiTestClient.MARKDOWN_RESOURCES.get(Identifier.of("enoki_test:test")).or(DocNode.of(new Document()));
+			DocNode document = EnokiTestClient.MARKDOWN_RESOURCES.get(Identifier.of("enoki_test:test")).orElse(DocNode.of(new Document()));
 			markdownWidget.setDocument(document);
 		}
 		

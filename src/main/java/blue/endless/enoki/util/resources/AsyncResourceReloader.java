@@ -1,4 +1,4 @@
-package blue.endless.enoki.utils.resources;
+package blue.endless.enoki.util.resources;
 
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resource.Resource;
@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
+@SuppressWarnings("ClassEscapesDefinedScope")
 public abstract class AsyncResourceReloader<R> implements IdentifiableResourceReloadListener {
 	protected abstract String getResourcePath();
 	protected abstract boolean shouldLoad(Identifier resourceId);
@@ -28,12 +29,9 @@ public abstract class AsyncResourceReloader<R> implements IdentifiableResourceRe
 	protected void afterApply() {}
 	
 	public CompletableFuture<Void> reload(ResourceReloader.Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
-		CompletableFuture<List<IdentifiedResource<R>>> future = CompletableFuture.supplyAsync(() -> prepareResources(manager), prepareExecutor);
-		var combinedFuture = future
+		return CompletableFuture.supplyAsync(() -> prepareResources(manager), prepareExecutor)
 				.thenCompose(synchronizer::whenPrepared)
 				.thenAcceptAsync(this::applyResources, applyExecutor);
-		
-		return combinedFuture;
 	}
 	
 	public List<IdentifiedResource<R>> prepareResources(ResourceManager manager) {

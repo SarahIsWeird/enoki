@@ -3,7 +3,7 @@ package blue.endless.enoki.markdown;
 import blue.endless.enoki.gui.widgets.link.LinkInfo;
 import blue.endless.enoki.markdown.attributes.DocImageAttributes;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
-import blue.endless.enoki.utils.ParseUtils;
+import blue.endless.enoki.util.ParseUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.text.MutableText;
@@ -35,6 +35,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -170,9 +171,9 @@ public record DocNode(NodeType type, String text, Object attributes, List<DocNod
 	}
 	
 	private static void appendInline(DocImageAttributes.Builder builder, String value) {
-		Boolean isInline = ParseUtils.tryParseBoolean(value);
-		if (isInline != null) {
-			builder.isInline(isInline);
+		Optional<Boolean> isInline = ParseUtils.tryParseBoolean(value);
+		if (isInline.isPresent()) {
+			builder.isInline(isInline.get());
 			return;
 		}
 		

@@ -1,6 +1,8 @@
 package blue.endless.enoki.markdown.styles.properties;
 
-public class BooleanStyleProperty extends StyleProperty<Boolean> {
+import org.jetbrains.annotations.NotNull;
+
+public class BooleanStyleProperty extends StyleProperty<@NotNull Boolean> {
 	private BooleanStyleProperty(String name) {
 		super(Boolean.class, name);
 	}
@@ -10,7 +12,7 @@ public class BooleanStyleProperty extends StyleProperty<Boolean> {
 	}
 
 	@Override
-	public boolean isValid(Boolean value) {
-		return value != null;
+	public boolean isValid(@NotNull Boolean value) {
+		return true;
 	}
 }

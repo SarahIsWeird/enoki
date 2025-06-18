@@ -2,7 +2,7 @@ package blue.endless.enoki.resource.style;
 
 import blue.endless.enoki.Enoki;
 import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
-import blue.endless.enoki.utils.resources.AsyncResourceReloader;
+import blue.endless.enoki.util.resources.AsyncResourceReloader;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.resource.Resource;

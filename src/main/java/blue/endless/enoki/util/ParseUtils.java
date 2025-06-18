@@ -1,10 +1,15 @@
-package blue.endless.enoki.utils;
+package blue.endless.enoki.util;
 
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-public class ParseUtils {
+import java.util.Optional;
 
+/**
+ * A utility class containing parsing utilities.
+ */
+public class ParseUtils {
+	private ParseUtils() {}
+	
 	/**
 	 * Parses an {@code int} from a given string. {@code str} can be null or an invalid number, in which case
 	 * {@code defaultValue} will be returned.
@@ -13,7 +18,6 @@ public class ParseUtils {
 	 * @param defaultValue The default attributes
 	 * @return The parsed int, or {@code defaultValue} if it couldn't be parsed
 	 */
-	@Contract(pure = true)
 	public static int parseIntOrDefault(@Nullable String str, int defaultValue) {
 		try {
 			if (str == null) return defaultValue;
@@ -34,18 +38,17 @@ public class ParseUtils {
 	 * @param str The string to parse
 	 * @return {@code true}/{@code false} if parsing succeeded, {@code null} otherwise
 	 */
-	@Nullable
-	public static Boolean tryParseBoolean(@Nullable String str) {
-		if (str == null) return true;
+	public static Optional<Boolean> tryParseBoolean(@Nullable String str) {
+		if (str == null) return Optional.of(true);
 		
 		if (str.equalsIgnoreCase("true")
 			|| str.equalsIgnoreCase("yes")
-			|| str.equalsIgnoreCase("y")) return true;
+			|| str.equalsIgnoreCase("y")) return Optional.of(true);
 		
 		if (str.equalsIgnoreCase("false")
 			|| str.equalsIgnoreCase("no")
-			|| str.equalsIgnoreCase("n")) return false;
+			|| str.equalsIgnoreCase("n")) return Optional.of(false);
 		
-		return null;
+		return Optional.empty();
 	}
 }

@@ -17,6 +17,8 @@ import java.util.Optional;
 import java.util.Set;
 
 public class Enoki {
+	private Enoki() {}
+	
 	public static final String MOD_ID = "enoki";
 
 	/**
@@ -65,6 +67,4 @@ public class Enoki {
 		Node document = DEFAULT_PARSER.parse(markdown);
 		return DocNode.of(document);
 	}
-	
-	private Enoki() {}
 }

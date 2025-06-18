@@ -2,7 +2,14 @@ package blue.endless.enoki.markdown.styles.properties;
 
 import java.util.List;
 
+/**
+ * This class holds all style properties Enoki knows of.
+ * 
+ * @see #PROPERTIES
+ */
 public class StyleProperties {
+	private StyleProperties() {}
+	
 	public static final FloatStyleProperty SIZE = FloatStyleProperty.positiveOnly("size");
 	
 	public static final IntStyleProperty COLOR = IntStyleProperty.of("color");
@@ -18,7 +25,10 @@ public class StyleProperties {
 	public static final IntStyleProperty MARGIN_RIGHT = IntStyleProperty.of("margin_right");
 	public static final IntStyleProperty MARGIN_BOTTOM = IntStyleProperty.of("margin_bottom");
 	public static final IntStyleProperty MARGIN_LEFT = IntStyleProperty.of("margin_left");
-	
+
+	/**
+	 * An immutable list of all style properties enoki knows of.
+	 */
 	public static final List<StyleProperty<?>> PROPERTIES =
 		List.of(
 			SIZE,
