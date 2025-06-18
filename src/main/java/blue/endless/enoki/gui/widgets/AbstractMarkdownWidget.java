@@ -17,7 +17,7 @@ public abstract class AbstractMarkdownWidget extends ClickableWidget implements 
 	public AbstractMarkdownWidget(int x, int y, int width, int height, Text message, LayoutStyle style) {
 		super(x, y, width, height, message);
 		this.style = style;
-		this.backgroundColor = randomColor();
+		this.backgroundColor = 0;
 	}
 	
 	private int randomColor() {

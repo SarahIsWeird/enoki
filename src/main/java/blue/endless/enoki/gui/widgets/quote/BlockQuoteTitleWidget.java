@@ -26,6 +26,9 @@ public class BlockQuoteTitleWidget extends AbstractMarkdownWidget {
 		this.spaceWidth = font.getWidth(" ");
 		
 		this.iconSize = MarkdownWidget.getActualImageSize(info.iconId());
+		
+		// Right now I'm adding clearance between the title/icon usind PADDING and not margins
+		this.height = Math.max(iconSize.height(), font.fontHeight) + 4;
 	}
 
 	@Override

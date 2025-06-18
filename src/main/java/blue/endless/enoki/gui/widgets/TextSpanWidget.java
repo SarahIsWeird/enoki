@@ -31,8 +31,17 @@ public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable
 	
 	@Override
 	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+		context.getMatrices().push();
+		
+		float textSize = this.style.getOrDefault(StyleProperties.SIZE, 1f);
+		if (Math.abs(textSize - 1f) > 0.001f) {
+			context.getMatrices().scale(textSize, textSize, 1);
+		}
+		
 		boolean shadow = style.getOrDefault(StyleProperties.SHADOW, false);
 		context.drawText(this.font, this.getMessage(), 0, 0, Colors.WHITE, shadow);
+		
+		context.getMatrices().pop();
 	}
 	
 	@Override

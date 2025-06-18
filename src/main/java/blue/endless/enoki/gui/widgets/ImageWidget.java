@@ -25,16 +25,18 @@ public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 		this.font = font;
 		this.image = image;
 		this.imageSize = MarkdownWidget.getActualImageSize(image);
+		this.width = imageSize.width();
+		this.height = imageSize.height();
 	}
 
 	@Override
 	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		context.getMatrices().push();
-		context.fill(getX(), getY(), getX() + width, getY() + height, Colors.CYAN);
+		//context.getMatrices().push();
+		context.fill(0, 0, width, height, Colors.CYAN);
 		context.drawTexture(
 			RenderLayer::getGuiTextured,
 			this.image,
-			this.getX(), this.getY(),
+			0, 0,
 			0f, 0f,
 			this.width, this.height,
 			imageSize.width(), imageSize.height(),
@@ -45,7 +47,7 @@ public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 			context.drawTooltip(font, getMessage(), mouseX, mouseY);
 		}
 
-		context.getMatrices().pop();
+		//context.getMatrices().pop();
 	}
 
 	@Override

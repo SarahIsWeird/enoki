@@ -1,6 +1,7 @@
 package blue.endless.enoki.gui.widgets;
 
 import blue.endless.enoki.gui.widgets.Splittable.Result;
+import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import blue.endless.enoki.markdown.styles.properties.StyleProperties;
 import net.minecraft.client.gui.widget.ClickableWidget;
@@ -29,19 +30,21 @@ public class BlockContainerWidget extends AbstractMarkdownWidget implements Resi
 	private void addBlock(ClickableWidget block) {
 		LayoutStyle blockStyle = (block instanceof AbstractMarkdownWidget mkdn) ? mkdn.getStyle() : LayoutStyle.empty();
 		int blockLeft = blockStyle.getOrDefault(StyleProperties.MARGIN_LEFT, 0);
+		if (block instanceof BlockQuoteWidget) blockLeft += 8;
 		//int blockRight = blockStyle.getOrDefault(StyleProperties.MARGIN_RIGHT, 0);
 		//int blockWidth = this.width - blockLeft - blockRight;
 		
 		if (children.isEmpty()) {
 			block.setPosition(blockLeft, 0);
 		} else {
-			block.setPosition(blockLeft, children.getLast().getBottom());
+			block.setPosition(blockLeft, this.height);
 		}
 		
 		children.add(block);
 		
 		if (block instanceof Resizeable r) r.setSize(this.width, -1);
-		this.height = block.getBottom(); // TODO: Add margin
+		int bottomMargin = blockStyle.getOrDefault(StyleProperties.MARGIN_BOTTOM, 0);
+		this.height = block.getBottom() + bottomMargin; // TODO: Add margin
 	}
 	
 	private void addUnsplittableInline(ClickableWidget widget) {

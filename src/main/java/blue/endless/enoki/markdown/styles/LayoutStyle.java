@@ -136,11 +136,11 @@ public class LayoutStyle {
 	}
 	
 	public int applyScale(int value) {
-		return value;
+		return (int) (value * this.getOrDefault(StyleProperties.SIZE, 1f));
 	}
 	
 	public int getTextWidth(String string, TextRenderer font) {
-		return getTextWidth(Text.literal(string).setStyle(this.asStyle()), font);
+		return this.applyScale(getTextWidth(Text.literal(string).setStyle(this.asStyle()), font));
 	}
 	
 	public int getTextWidth(Text text, TextRenderer font) {

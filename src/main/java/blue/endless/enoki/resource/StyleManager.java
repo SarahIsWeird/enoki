@@ -4,7 +4,8 @@ import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
 import com.google.gson.JsonElement;
 import com.mojang.serialization.DataResult;
 import com.mojang.serialization.JsonOps;
-import net.fabricmc.fabric.api.resource.SimpleSynchronousResourceReloadListener;
+
+import net.fabricmc.fabric.api.resource.SimpleResourceReloadListener;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
@@ -17,6 +18,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 
 public class StyleManager {
 	private static final String RESOURCE_PATH = "markdown/styles";
@@ -42,7 +45,7 @@ public class StyleManager {
 		return new ReloadListener();
 	}
 
-	public class ReloadListener implements SimpleSynchronousResourceReloadListener {
+	public class ReloadListener implements SimpleResourceReloadListener<Map<Identifier, LayoutStyleSheet>> {
 		private static final Logger LOGGER = LogManager.getLogger();
 		
 		@Override
@@ -63,27 +66,18 @@ public class StyleManager {
 			return Optional.of(resourceId.withPath(path));
 		}
 
-		@Override
 		public void reload(ResourceManager manager) {
-			styleSheets.clear();
 			
-			Map<Identifier, Resource> resources = manager.findResources(
-				RESOURCE_PATH,
-				identifier -> identifier.getPath().endsWith(PATH_SUFFIX)
-			);
-			
-			for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
-				processResource(entry.getKey(), entry.getValue());
-			}
 		}
 		
-		private void processResource(Identifier resourceId, Resource resource) {
-			loadStyleSheet(resourceId, resource)
-				.ifSuccess(StyleManager.this::registerStyleSheet)
-				.ifError(error -> {
-					LOGGER.error("Failed to load style sheet for {}:", resourceId);
-					LOGGER.error(error);
-				});
+		private Map.Entry<Identifier, LayoutStyleSheet> processResource(Identifier resourceId, Resource resource) {
+			DataResult<Map.Entry<Identifier, LayoutStyleSheet>> r = loadStyleSheet(resourceId, resource);
+			return r.getOrThrow();
+			//	.ifSuccess(StyleManager.this::registerStyleSheet)
+			//	.ifError(error -> {
+			//		LOGGER.error("Failed to load style sheet for {}:", resourceId);
+			//		LOGGER.error(error);
+			//	});
 		}
 		
 		private DataResult<Map.Entry<Identifier, LayoutStyleSheet>> loadStyleSheet(Identifier resourceId, Resource resource) {
@@ -102,5 +96,44 @@ public class StyleManager {
 				return DataResult.error(e::toString);
 			}
 		}
+
+		@Override
+		public CompletableFuture<Map<Identifier, LayoutStyleSheet>> load(ResourceManager manager, Executor executor) {
+			
+			return CompletableFuture.supplyAsync(() -> {
+				Map<Identifier, Resource> resources = manager.findResources(
+					"markdown",
+					//RESOURCE_PATH,
+					(it) -> true
+					//identifier -> identifier.getPath().endsWith(PATH_SUFFIX)
+				);
+				LOGGER.info("Reload firing. " + resources.size() + " resources found.");
+				
+				Map<Identifier, LayoutStyleSheet> results = new HashMap<>();
+				for (Map.Entry<Identifier, Resource> entry : resources.entrySet()) {
+					try {
+						Map.Entry<Identifier, LayoutStyleSheet> result = processResource(entry.getKey(), entry.getValue());
+						results.put(result.getKey(), result.getValue());
+					} catch (Throwable t) {
+						LOGGER.error("Failed to load style sheet for {}:", entry.getKey());
+					}
+					
+				}
+				
+				return results;
+			}, executor);
+		}
+		
+		@Override
+		public CompletableFuture<Void> apply(Map<Identifier, LayoutStyleSheet> data, ResourceManager manager, Executor executor) {
+			return CompletableFuture.runAsync(() -> {
+				styleSheets.clear();
+				
+				for(Map.Entry<Identifier, LayoutStyleSheet> entry : data.entrySet()) {
+					styleSheets.put(entry.getKey(), entry.getValue());
+				}
+			}, executor);
+		}
+		
 	}
 }

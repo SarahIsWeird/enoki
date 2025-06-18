@@ -171,12 +171,18 @@ public class MarkdownWidget extends ContainerWidget {
 		//System.out.println("Building block of type "+node.type());
 		AbstractMarkdownWidget result = switch(node.type()) {
 			case H1, H2, H3, H4, H5, H6 -> new HeadingWidget(width, externalStyle);
-			case IMAGE -> new ImageWidget(0, 0, width, 64, Text.literal(""), Identifier.of("minecraft:stone"), font, externalStyle);
+			case IMAGE -> {
+				System.out.println("ImageWidget attributes: "+node.attributes());
+				ImageWidget image = new ImageWidget(0, 0, width, 64, Text.literal(""), Identifier.of("minecraft:stone"), font, externalStyle);
+				yield image;
+			}
 			case BLOCK_QUOTE -> {
-				if (node.attributes() instanceof BlockQuoteInfo info) {
-					yield new BlockQuoteWidget(width, info.color(), externalStyle);
+				if (node.attributes() instanceof String str) {
+					BlockQuoteInfo info = BlockQuoteInfo.of(str);
+					yield new BlockQuoteWidget(width, info, externalStyle);
+				} else {
+					yield new BlockQuoteWidget(width, BlockQuoteInfo.DEFAULT, externalStyle);
 				}
-				yield new BlockContainerWidget(width, externalStyle);
 			}
 			default -> new BlockContainerWidget(width, externalStyle);
 		};
