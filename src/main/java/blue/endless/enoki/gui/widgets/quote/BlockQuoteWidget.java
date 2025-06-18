@@ -1,9 +1,7 @@
 package blue.endless.enoki.gui.widgets.quote;
 
-import blue.endless.enoki.EnokiClient;
 import blue.endless.enoki.gui.widgets.BlockContainerWidget;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
-import blue.endless.enoki.resource.StyleManager;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 

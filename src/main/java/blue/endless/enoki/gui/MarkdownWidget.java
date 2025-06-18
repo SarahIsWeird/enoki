@@ -44,23 +44,21 @@ public class MarkdownWidget extends ContainerWidget {
 	private static final Logger LOGGER = LogManager.getLogger(MarkdownWidget.class);
 	
 	private DocNode document;
-	//private final WordWrap wordWrap;
 	private TextRenderer font;
 	private Map<@NotNull NodeType, LayoutStyle> layoutMap;
 	
-	private List<ClickableWidget> currentChildren = new ArrayList<>();
+	private final List<ClickableWidget> currentChildren = new ArrayList<>();
 	
 	public MarkdownWidget(int x, int y, int width) {
 		super(x, y, width, 0, Text.empty());
 		
-		//this.wordWrap = new WordWrap();
 		this.font = MinecraftClient.getInstance().textRenderer;
 
 		Identifier defaultSheetId = Identifier.of("enoki:default");
 		Identifier testSheetId = Identifier.of("enoki:test");
 		
-		LayoutStyleSheet defaultSheet = EnokiClient.STYLE_MANAGER.getStyleSheet(defaultSheetId).orElse(LayoutStyleSheet.empty());
-		LayoutStyleSheet testSheet = EnokiClient.STYLE_MANAGER.getStyleSheet(testSheetId).orElse(LayoutStyleSheet.empty());
+		LayoutStyleSheet defaultSheet = EnokiClient.STYLES.getStyleSheet(defaultSheetId).orElse(LayoutStyleSheet.empty());
+		LayoutStyleSheet testSheet = EnokiClient.STYLES.getStyleSheet(testSheetId).orElse(LayoutStyleSheet.empty());
 		
 		testSheet.applyDefaults(defaultSheet);
 		this.layoutMap = testSheet.bake();
@@ -73,29 +71,10 @@ public class MarkdownWidget extends ContainerWidget {
 		}
 	}
 	
-	/*
-	public MarkdownWidget(int x, int y, int width, int height, boolean scrollable, Identifier documentId) {
-		this(x, y, width, height, scrollable);
-		
-		this.setDocument(documentId);
-	}*/
-	
 	public void setFont(TextRenderer font) {
 		this.font = requireNonNull(font);
 		this.rebuildWidgets();
 	}
-	
-	/*
-	public void setDocument(@NotNull Identifier documentId) {
-		Optional<DocNode> document = EnokiClient.MARKDOWN_RESOURCES.get(documentId);
-		DocNode document = MarkdownResources.getDocumentOrFallback(documentId);
-		if (document == null) {
-			LOGGER.error("Could not find document id {}!", documentId);
-			return;
-		}
-		
-		this.setDocument(document);
-	}*/
 	
 	public void setDocument(@NotNull DocNode document) {
 		this.document = document;
@@ -126,11 +105,7 @@ public class MarkdownWidget extends ContainerWidget {
 			context.getMatrices().push();
 			context.getMatrices().translate(widget.getX(), widget.getY(), 0);
 			
-			//context.enableScissor(0, 0, width, height);
-			
 			widget.render(context, mouseX - widget.getX(), mouseY - widget.getY(), deltaTicks);
-			
-			//context.disableScissor();
 			
 			context.getMatrices().pop();
 		}
@@ -141,13 +116,11 @@ public class MarkdownWidget extends ContainerWidget {
 	
 
 	private void rebuildWidgets() {
-		
 		LayoutStyle innerStyle = this.layoutMap.get(NodeType.DOCUMENT);
 		if (innerStyle == null) innerStyle = LayoutStyle.empty();
 		
 		this.currentChildren.clear();
 		ClickableWidget rootWidget = buildBlock(document, getWidth(), innerStyle);
-		System.out.println("Built document block: "+rootWidget.getWidth()+" x "+rootWidget.getHeight());
 		this.currentChildren.add(rootWidget);
 		
 		this.setHeight(rootWidget.getHeight());

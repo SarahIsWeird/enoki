@@ -5,7 +5,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Keyable;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Optional;
 
@@ -21,28 +21,46 @@ public class LayoutStyleSheet {
 
 	private final Map<NodeCategory, LayoutStyle> styles;
 	
-	private LayoutStyleSheet() {
-		this(new HashMap<>());
+	public LayoutStyleSheet() {
+		this.styles = new EnumMap<>(NodeCategory.class);
 	}
 
-	private LayoutStyleSheet(Map<NodeCategory, LayoutStyle> styles) {
-		this.styles = new HashMap<>(styles);
+	public LayoutStyleSheet(Map<NodeCategory, LayoutStyle> styles) {
+		/*
+		 * We call the no-args constructor first, because the EnumMap constructor throws if the map is empty.
+		 * It needs to know the type of the enum to build the internal array, but it's valid for someone
+		 * to supply an empty map to this constructor!
+		 */
+		this();
+		
+		// we can just put all the entries into the map, and it should Just Work™️.
+		this.styles.putAll(styles);
 	}
 
 	public static LayoutStyleSheet empty() {
 		return new LayoutStyleSheet();
 	}
 
+	public LayoutStyleSheet copy() {
+		LayoutStyleSheet copy = new LayoutStyleSheet();
+
+		for (Map.Entry<NodeCategory, LayoutStyle> entry : this.styles.entrySet()) {
+			copy.put(entry.getKey(), entry.getValue().copy());
+		}
+
+		return copy;
+	}
+
 	private Map<NodeCategory, LayoutStyle> getStyles() {
 		return this.styles;
+	}
+
+	public Optional<LayoutStyle> get(@NotNull NodeCategory category) {
+		return Optional.ofNullable(this.styles.get(category));
 	}
 	
 	public void put(@NotNull NodeCategory category, LayoutStyle style) {
 		this.styles.put(requireNonNull(category), requireNonNull(style));
-	}
-	
-	public Optional<LayoutStyle> get(@NotNull NodeCategory category) {
-		return Optional.ofNullable(this.styles.get(category));
 	}
 	
 	public void applyDefaults(LayoutStyleSheet defaults) {
@@ -76,7 +94,7 @@ public class LayoutStyleSheet {
 	}
 	
 	private Map<NodeType, LayoutStyle> buildNodeTypeMap() {
-		Map<NodeType, LayoutStyle> bakedStyles = new HashMap<>();
+		Map<NodeType, LayoutStyle> bakedStyles = new EnumMap<>(NodeType.class);
 		for (NodeType type : NodeType.values()) {
 			NodeCategory category = NodeCategory.getByNodeType(type).orElse(NodeCategory.DEFAULT);
 
@@ -86,15 +104,5 @@ public class LayoutStyleSheet {
 		}
 		
 		return bakedStyles;
-	}
-
-	public LayoutStyleSheet copy() {
-		LayoutStyleSheet copy = new LayoutStyleSheet();
-		
-		for (Map.Entry<NodeCategory, LayoutStyle> entry : this.styles.entrySet()) {
-			copy.put(entry.getKey(), entry.getValue().copy());
-		}
-		
-		return copy;
 	}
 }

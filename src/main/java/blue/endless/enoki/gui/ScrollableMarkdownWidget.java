@@ -93,6 +93,6 @@ public class ScrollableMarkdownWidget extends ContainerWidget {
 
 	@Override
 	protected void appendClickableNarrations(NarrationMessageBuilder builder) {
-		this.markdown.appendClickableNarrations(builder);
+		
 	}
 }

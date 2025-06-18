@@ -65,4 +65,6 @@ public class Enoki {
 		Node document = DEFAULT_PARSER.parse(markdown);
 		return DocNode.of(document);
 	}
+	
+	private Enoki() {}
 }

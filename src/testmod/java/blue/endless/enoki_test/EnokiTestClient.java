@@ -36,7 +36,6 @@ public final class EnokiTestClient implements ClientModInitializer {
 			}
 		});
 		
-		
 		MARKDOWN_RESOURCES = EnokiClient.registerResourceManager(Identifier.of("enoki_test:markdown"));
 	}
 }
