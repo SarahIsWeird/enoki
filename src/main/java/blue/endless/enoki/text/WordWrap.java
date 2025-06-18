@@ -23,27 +23,8 @@ public class WordWrap {
 		this.breaks = BreakIterator.getWordInstance(locale);
 	}
 	
-	public String getFirstLine(TextRenderer font, int width, String text, LayoutStyle style) {
-		int totalWidth = style.getTextWidth(text, font);
-		if (totalWidth <= width) return text;
-		
-		String firstLine = text;
-		breaks.setText(text);
-		
-		int pos = breaks.last();
-		if (pos == BreakIterator.DONE) return hardWrap(font, width, firstLine, style);
-		firstLine = firstLine.substring(0, pos);
-		
-		while (style.getTextWidth(firstLine, font) > width) {
-			pos = breaks.previous();
-			if (pos == BreakIterator.DONE) return hardWrap(font, width, firstLine, style);
-			firstLine = firstLine.substring(0, pos);
-		}
-		
-		return firstLine;
-	}
-	
-	public @Nullable String getCleanFirstLine(TextRenderer font, int width, String text, LayoutStyle style) {
+	@Nullable
+	public String getCleanFirstLine(TextRenderer font, int width, String text, LayoutStyle style) {
 		int totalWidth = style.getTextWidth(text, font);
 		if (totalWidth <= width) return text;
 		
