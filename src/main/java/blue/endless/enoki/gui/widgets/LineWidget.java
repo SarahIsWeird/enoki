@@ -2,18 +2,17 @@ package blue.endless.enoki.gui.widgets;
 
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class LineWidget extends AbstractMarkdownWidget {
+public class LineWidget extends AbstractContainerWidget {
 	protected List<ClickableWidget> children = new ArrayList<>();
 	
 	public LineWidget(int width, LayoutStyle style) {
-		super(0, 0, width, 0, Text.empty(), style);
+		super(width, 0, style);
 	}
 
 	@Override

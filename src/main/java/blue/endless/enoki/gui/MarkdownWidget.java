@@ -1,6 +1,7 @@
 package blue.endless.enoki.gui;
 
 import blue.endless.enoki.EnokiClient;
+import blue.endless.enoki.gui.widgets.AbstractContainerWidget;
 import blue.endless.enoki.gui.widgets.AbstractMarkdownWidget;
 import blue.endless.enoki.gui.widgets.BlockContainerWidget;
 import blue.endless.enoki.gui.widgets.FlowContainerWidget;
@@ -105,7 +106,7 @@ public class MarkdownWidget extends ContainerWidget {
 			context.getMatrices().push();
 			context.getMatrices().translate(widget.getX(), widget.getY(), 0);
 			
-			widget.render(context, mouseX - widget.getX(), mouseY - widget.getY(), deltaTicks);
+			widget.render(context, mouseX - this.getX() - widget.getX(), mouseY - this.getY() - widget.getY(), deltaTicks);
 			
 			context.getMatrices().pop();
 		}
@@ -156,7 +157,7 @@ public class MarkdownWidget extends ContainerWidget {
 			default -> new BlockContainerWidget(width, externalStyle);
 		};
 		
-		if (!(result instanceof BlockContainerWidget block)) return result;
+		if (!(result instanceof AbstractContainerWidget block)) return result;
 		
 		for (DocNode child : node.children()) {
 			LayoutStyle innerStyle = this.getDefaultedInnerStyle(child.type(), NodeType.TEXT, externalStyle);
@@ -184,13 +185,13 @@ public class MarkdownWidget extends ContainerWidget {
 		AbstractMarkdownWidget result = switch (node.type()) {
 			case TEXT -> new TextSpanWidget(node.text(), externalStyle, MinecraftClient.getInstance().textRenderer);
 			case IMAGE -> {
-				System.out.println("ImageWidget attributes: "+node.attributes());
 				if (node.attributes() instanceof DocImageAttributes attrs) {
 					Text altText = (node.text() == null) ? null : Text.of(node.text());
 					ImageWidget image = new ImageWidget(0, 0, width, 64, altText, attrs.imageId(), font, externalStyle);
 					if (attrs.size() != null) {
 						image.setSize(attrs.size());
 					}
+					
 					yield image;
 				} else {
 					ImageWidget image = new ImageWidget(0, 0, width, 64, Text.literal(""), Identifier.of("minecraft:missingno"), font, externalStyle);
@@ -202,7 +203,7 @@ public class MarkdownWidget extends ContainerWidget {
 			default -> new FlowContainerWidget(externalStyle);
 		};
 		
-		if (result instanceof FlowContainerWidget container) {
+		if (result instanceof AbstractContainerWidget container) {
 			for(DocNode child : node.children()) {
 				LayoutStyle innerStyle;
 				if (child.type() == NodeType.TEXT) {

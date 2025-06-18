@@ -3,18 +3,17 @@ package blue.endless.enoki.gui.widgets;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import com.google.common.collect.Iterators;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class FlowContainerWidget extends AbstractMarkdownWidget implements Splittable {
+public class FlowContainerWidget extends AbstractContainerWidget implements Splittable {
 	protected List<ClickableWidget> children = new ArrayList<>();
 	
 	public FlowContainerWidget(LayoutStyle style) {
-		super(0, 0, 0, 0, Text.empty(), style);
+		super(0, 0, style);
 	}
 
 	public void add(ClickableWidget child) {

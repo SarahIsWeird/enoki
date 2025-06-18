@@ -1,15 +1,11 @@
 package blue.endless.enoki.gui.widgets.quote;
 
-import java.util.Iterator;
-import java.util.List;
-
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.gui.Size;
 import blue.endless.enoki.gui.widgets.AbstractMarkdownWidget;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Colors;
 
@@ -60,10 +56,5 @@ public class BlockQuoteTitleWidget extends AbstractMarkdownWidget {
 
 	private static int getTitleWidth(BlockQuoteInfo info, TextRenderer font) {
 		return font.getWidth(info.title()) + font.getWidth(" ") + font.fontHeight;
-	}
-
-	@Override
-	public Iterator<ClickableWidget> iterator() {
-		return List.<ClickableWidget>of().iterator();
 	}
 }

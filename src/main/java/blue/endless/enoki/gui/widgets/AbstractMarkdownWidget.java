@@ -6,13 +6,11 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
-import net.minecraft.util.math.random.Random;
 
-public abstract class AbstractMarkdownWidget extends ClickableWidget implements Iterable<ClickableWidget> {
+public abstract class AbstractMarkdownWidget extends ClickableWidget {
 	protected LayoutStyle style;
 	protected int backgroundColor = 0;
 	protected ClickHandler onClick = (x, y, button) -> false;
-	// TODO: tooltip handler
 	
 	public AbstractMarkdownWidget(int x, int y, int width, int height, Text message, LayoutStyle style) {
 		super(x, y, width, height, message);
@@ -20,6 +18,13 @@ public abstract class AbstractMarkdownWidget extends ClickableWidget implements 
 		this.backgroundColor = 0;
 	}
 	
+	public Text getAsText() {
+		Text result = this.getMessage();
+		if (result == null) return Text.empty();
+		return result;
+	}
+	
+	/*
 	private int randomColor() {
 		Random rng = Random.create();
 		int r = rng.nextBetween(64, 180);
@@ -30,29 +35,29 @@ public abstract class AbstractMarkdownWidget extends ClickableWidget implements 
 				(r << 16) |
 				(g <<  8) |
 				(b      );
-	}
+	}*/
 	
 	@Override
 	public boolean mouseClicked(double mouseX, double mouseY, int button) {
-		if (this.active && this.visible) {
-			for(ClickableWidget w : this) {
-				if (w.mouseClicked(mouseX - w.getX(), mouseY - w.getY(), button)) return true;
-			}
-			
-			if (this.isValidClickButton(button)) {
-				boolean hovered = this.isMouseOver(mouseX, mouseY);
-				if (hovered) {
-					boolean result = this.onClick.apply(mouseX, mouseY, button);
-					if (result) {
-						this.playDownSound(MinecraftClient.getInstance().getSoundManager());
-					}
-					return result;
+		if (!active || !visible) return false;
+		
+		if (this.isValidClickButton(button)) {
+			if (isMouseOver(mouseX, mouseY)) {
+				boolean result = this.onClick.apply(mouseX, mouseY, button);
+				if (result) {
+					this.playDownSound(MinecraftClient.getInstance().getSoundManager());
 				}
+				return result;
 			}
-
-			return false;
-		} else {
-			return false;
+		}
+		
+		return false;
+	}
+	
+	@Override
+	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
+		if ((backgroundColor & 0xFF_000000) != 0) {
+			context.fill(0, 0, this.getWidth(), this.getHeight(), backgroundColor);
 		}
 	}
 	
@@ -61,24 +66,8 @@ public abstract class AbstractMarkdownWidget extends ClickableWidget implements 
 	}
 	
 	@Override
-	protected void renderWidget(DrawContext context, int mouseX, int mouseY, float deltaTicks) {
-		if ((backgroundColor & 0xFF_000000) != 0) {
-			context.fill(0, 0, this.getWidth(), this.getHeight(), backgroundColor);
-		}
-		
-		for(ClickableWidget widget : this) {
-			
-			context.getMatrices().push();
-			context.getMatrices().translate(widget.getX(), widget.getY(), 0);
-			
-			//context.enableScissor(0, 0, width, height);
-			
-			widget.render(context, mouseX - widget.getX(), mouseY - widget.getY(), deltaTicks);
-			
-			//context.disableScissor();
-			
-			context.getMatrices().pop();
-		}
+	public boolean isMouseOver(double mouseX, double mouseY) {
+		return mouseX >= 0 && mouseY >= 0 && mouseX < width && mouseY < height;
 	}
 
 	@Override

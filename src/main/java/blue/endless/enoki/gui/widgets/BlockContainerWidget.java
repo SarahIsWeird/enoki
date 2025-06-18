@@ -5,19 +5,19 @@ import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import blue.endless.enoki.markdown.styles.properties.StyleProperties;
 import net.minecraft.client.gui.widget.ClickableWidget;
-import net.minecraft.text.Text;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class BlockContainerWidget extends AbstractMarkdownWidget implements Resizeable {
+public class BlockContainerWidget extends AbstractContainerWidget implements Resizeable {
 	protected List<ClickableWidget> children = new ArrayList<>();
 	
 	public BlockContainerWidget(int width, LayoutStyle style) {
-		super(0, 0, width, 1, Text.empty(), style);
+		super(width, 1, style);
 	}
 	
+	@Override
 	public void add(ClickableWidget child) {
 		// Note: For unknown widgets, default to treating them as non-splittable inline-blocks
 		if (child instanceof AbstractMarkdownWidget w && !w.isInline()) {

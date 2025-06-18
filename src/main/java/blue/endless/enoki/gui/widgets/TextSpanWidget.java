@@ -5,13 +5,8 @@ import blue.endless.enoki.markdown.styles.properties.StyleProperties;
 import blue.endless.enoki.text.WordWrap;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.Collections;
-import java.util.Iterator;
 
 public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable {
 	protected final TextRenderer font;
@@ -21,12 +16,6 @@ public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable
 		super(0, 0, style.getTextWidth(text, font), style.applyScale(font.fontHeight), Text.literal(text).fillStyle(style.asStyle()), style);
 		this.font = font;
 		this.text = text;
-	}
-
-	@Override
-	@NotNull
-	public Iterator<ClickableWidget> iterator() {
-		return Collections.emptyIterator();
 	}
 	
 	@Override
@@ -48,6 +37,12 @@ public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable
 	public int getHeight() {
 		if (text.isBlank()) return 0;
 		return super.getHeight();
+	}
+	
+	@Override
+	public Text getAsText() {
+		System.out.println("Message: "+getMessage());
+		return getMessage();
 	}
 	
 	@Override
