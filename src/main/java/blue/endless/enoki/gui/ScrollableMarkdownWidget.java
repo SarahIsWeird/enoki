@@ -45,6 +45,19 @@ public class ScrollableMarkdownWidget extends ContainerWidget {
 	}
 
 	@Override
+	public void setHeight(int height) {
+		super.setHeight(height);
+		this.markdown.setHeight(height);
+	}
+
+	public void setSize(int width, int height) {
+		super.setWidth(width);
+		super.setHeight(height);
+		
+		this.markdown.setWidth(width);
+	}
+
+	@Override
 	public List<? extends Element> children() {
 		return List.of(this.markdown);
 	}

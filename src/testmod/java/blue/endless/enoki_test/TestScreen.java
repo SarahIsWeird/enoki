@@ -34,6 +34,6 @@ public class TestScreen extends Screen {
 
 	@Override
 	protected void refreshWidgetPositions() {
-		this.markdownWidget.setWidth(width - 100);
+		this.markdownWidget.setSize(width - 100, height - 100);
 	}
 }
