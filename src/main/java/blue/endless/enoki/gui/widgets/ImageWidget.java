@@ -43,7 +43,7 @@ public class ImageWidget extends AbstractMarkdownWidget implements Resizeable {
 			imageSize.width(), imageSize.height()
 		);
 
-		if (isMouseOver(mouseX, mouseY)) {
+		if (isMouseOver(mouseX, mouseY) && getMessage() != null) {
 			context.drawTooltip(font, getMessage(), mouseX, mouseY);
 		}
 

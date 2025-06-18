@@ -11,6 +11,7 @@ import blue.endless.enoki.gui.widgets.quote.BlockQuoteInfo;
 import blue.endless.enoki.gui.widgets.quote.BlockQuoteWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.NodeType;
+import blue.endless.enoki.markdown.attributes.DocImageAttributes;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
 import blue.endless.enoki.markdown.styles.properties.StyleProperties;
@@ -171,11 +172,6 @@ public class MarkdownWidget extends ContainerWidget {
 		//System.out.println("Building block of type "+node.type());
 		AbstractMarkdownWidget result = switch(node.type()) {
 			case H1, H2, H3, H4, H5, H6 -> new HeadingWidget(width, externalStyle);
-			case IMAGE -> {
-				System.out.println("ImageWidget attributes: "+node.attributes());
-				ImageWidget image = new ImageWidget(0, 0, width, 64, Text.literal(""), Identifier.of("minecraft:stone"), font, externalStyle);
-				yield image;
-			}
 			case BLOCK_QUOTE -> {
 				if (node.attributes() instanceof String str) {
 					BlockQuoteInfo info = BlockQuoteInfo.of(str);
@@ -214,7 +210,21 @@ public class MarkdownWidget extends ContainerWidget {
 	private ClickableWidget buildFlow(DocNode node, int width, LayoutStyle externalStyle) {
 		AbstractMarkdownWidget result = switch (node.type()) {
 			case TEXT -> new TextSpanWidget(node.text(), externalStyle, MinecraftClient.getInstance().textRenderer);
-			
+			case IMAGE -> {
+				System.out.println("ImageWidget attributes: "+node.attributes());
+				if (node.attributes() instanceof DocImageAttributes attrs) {
+					Text altText = (node.text() == null) ? null : Text.of(node.text());
+					ImageWidget image = new ImageWidget(0, 0, width, 64, altText, attrs.imageId(), font, externalStyle);
+					if (attrs.size() != null) {
+						image.setSize(attrs.size());
+					}
+					yield image;
+				} else {
+					ImageWidget image = new ImageWidget(0, 0, width, 64, Text.literal(""), Identifier.of("minecraft:missingno"), font, externalStyle);
+					yield image;
+				}
+				
+			}
 			// TODO: Some more types
 			default -> new FlowContainerWidget(externalStyle);
 		};
