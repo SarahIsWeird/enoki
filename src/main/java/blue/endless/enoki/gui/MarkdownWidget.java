@@ -58,8 +58,8 @@ public class MarkdownWidget extends ContainerWidget {
 		Identifier defaultSheetId = Identifier.of("enoki:default");
 		Identifier testSheetId = Identifier.of("enoki:test");
 		
-		LayoutStyleSheet defaultSheet = EnokiClient.STYLES.getOrSupply(defaultSheetId, LayoutStyleSheet::empty);
-		LayoutStyleSheet testSheet = EnokiClient.STYLES.getOrSupply(testSheetId, LayoutStyleSheet::empty);
+		LayoutStyleSheet defaultSheet = EnokiClient.STYLES.getOrDefault(defaultSheetId, LayoutStyleSheet::empty);
+		LayoutStyleSheet testSheet = EnokiClient.STYLES.getOrDefault(testSheetId, LayoutStyleSheet::empty);
 		
 		testSheet.applyDefaults(defaultSheet);
 		this.layoutMap = testSheet.bake();

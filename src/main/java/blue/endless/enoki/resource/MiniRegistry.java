@@ -58,7 +58,7 @@ public class MiniRegistry<TResource> {
 	 * @param defaultValueSupplier
 	 * @return
 	 */
-	public TResource getOrSupply(Identifier id, Supplier<TResource> defaultValueSupplier) {
+	public TResource getOrDefault(Identifier id, Supplier<TResource> defaultValueSupplier) {
 		TResource result = entries.get(id);
 		if (result != null) return result;
 		return defaultValueSupplier.get();
