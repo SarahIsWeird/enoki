@@ -1,6 +1,7 @@
 package blue.endless.enoki.text;
 
 import blue.endless.enoki.markdown.styles.LayoutStyle;
+import blue.endless.enoki.util.NotNullByDefault;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
@@ -11,6 +12,7 @@ import java.text.BreakIterator;
 import java.util.Locale;
 
 @Environment(EnvType.CLIENT)
+@NotNullByDefault
 public class WordWrap {
 	private final BreakIterator breaks;
 	

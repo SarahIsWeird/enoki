@@ -2,11 +2,16 @@ package blue.endless.enoki.markdown.styles.properties;
 
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
+
+import blue.endless.enoki.util.NotNullByDefault;
+
 /**
  * This class holds all style properties Enoki knows of.
  * 
  * @see #PROPERTIES
  */
+@NotNullByDefault
 public class StyleProperties {
 	private StyleProperties() {}
 	
@@ -29,7 +34,7 @@ public class StyleProperties {
 	/**
 	 * An immutable list of all style properties enoki knows of.
 	 */
-	public static final List<StyleProperty<?>> PROPERTIES =
+	public static final List<@NotNull StyleProperty<?>> PROPERTIES =
 		List.of(
 			SIZE,
 			COLOR, BACKGROUND_COLOR,

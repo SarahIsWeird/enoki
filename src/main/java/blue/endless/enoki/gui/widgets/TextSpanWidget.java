@@ -51,11 +51,14 @@ public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable
 	public Result split(int lineWidth, boolean force) {
 		WordWrap wrap = new WordWrap();
 		
-		@Nullable String firstLine = (force) ?
-				wrap.hardWrap(font, lineWidth, text, style).stripLeading()
-				:
-				wrap.getCleanFirstLine(font, lineWidth, text, style).stripLeading();
-		
+		@Nullable String firstLine;
+		if (force) {
+			firstLine = wrap.hardWrap(font, lineWidth, text, style).stripLeading();
+		} else {
+			firstLine = wrap.getCleanFirstLine(font, lineWidth, text, style);
+			
+			if (firstLine != null) firstLine = firstLine.stripLeading();
+		}
 		if (firstLine == null) return Result.nothingFits(this);
 		if (firstLine.length() == text.length()) return Result.everythingFits(this);
 		String remainder = text.substring(firstLine.length());
