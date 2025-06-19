@@ -3,8 +3,8 @@ package blue.endless.enoki;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
 import blue.endless.enoki.resource.LocalizedResourceManager;
-import blue.endless.enoki.resource.style.StyleRegistry;
-import blue.endless.enoki.resource.style.StyleReloadListener;
+import blue.endless.enoki.resource.MiniRegistry;
+import blue.endless.enoki.resource.impl.StyleReloadListener;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -25,7 +25,7 @@ public class EnokiClient implements ClientModInitializer {
 	 * 
 	 * @see StyleRegistry#registerStyleSheet(Identifier, LayoutStyleSheet) Registering custom style sheets
 	 */
-	public static final StyleRegistry STYLES = new StyleRegistry();
+	public static final MiniRegistry<LayoutStyleSheet> STYLES = new MiniRegistry<>();
 	
 	@Override
 	public void onInitializeClient() {
@@ -39,6 +39,10 @@ public class EnokiClient implements ClientModInitializer {
 	 * <p>
 	 * For example, if the manager identifier is {@code my_mod:my_folder}, then this resource manager will load
 	 * all documents in {@code assets/<any mod id>/my_mod/my_folder} and its sub-folders.
+	 * 
+	 * <p>
+	 * For a resource manager registered with Id "a:b/c", with a resource at "assets/x/a/b/c/ja_jp/y/document.md", the
+	 * resource will be visible with Id "x:y/document" in the Japanese (Japan) locale.
 	 * 
 	 * @param id The manager id
 	 * @return A resource manager for Markdown documents

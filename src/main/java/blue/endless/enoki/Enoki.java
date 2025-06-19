@@ -22,7 +22,7 @@ public class Enoki {
 	public static final String MOD_ID = "enoki";
 
 	/**
-	 * The default extensions. If you want to build your own parser, add these to the extensions.
+	 * The default parser extensions. If you want to build your own parser, add these to the extensions.
 	 * 
 	 * <pre><code>
 	 * Parser myParser = Parser.builder()

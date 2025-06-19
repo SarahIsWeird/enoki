@@ -1,5 +1,7 @@
 package blue.endless.enoki.gui.widgets;
 
+import org.jetbrains.annotations.Nullable;
+
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import blue.endless.enoki.markdown.styles.properties.StyleProperties;
 import blue.endless.enoki.text.WordWrap;
@@ -49,7 +51,7 @@ public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable
 	public Result split(int lineWidth, boolean force) {
 		WordWrap wrap = new WordWrap();
 		
-		String firstLine = (force) ?
+		@Nullable String firstLine = (force) ?
 				wrap.hardWrap(font, lineWidth, text, style).stripLeading()
 				:
 				wrap.getCleanFirstLine(font, lineWidth, text, style).stripLeading();

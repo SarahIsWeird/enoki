@@ -1,8 +1,10 @@
-package blue.endless.enoki.resource.style;
+package blue.endless.enoki.resource.impl;
 
 import blue.endless.enoki.Enoki;
 import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
-import blue.endless.enoki.util.resources.AsyncResourceReloader;
+import blue.endless.enoki.resource.AsyncResourceReloader;
+import blue.endless.enoki.resource.MiniRegistry;
+
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.resource.Resource;
@@ -24,9 +26,9 @@ public class StyleReloadListener extends AsyncResourceReloader<LayoutStyleSheet>
 	
 	private static final Logger LOGGER = LogManager.getLogger("EnokiStyleReloadListener");
 	
-	private final StyleRegistry styleRegistry;
+	private final MiniRegistry<LayoutStyleSheet> styleRegistry;
 	
-	public StyleReloadListener(StyleRegistry styleRegistry) {
+	public StyleReloadListener(MiniRegistry<LayoutStyleSheet> styleRegistry) {
 		this.styleRegistry = styleRegistry;
 	}
 
@@ -85,6 +87,6 @@ public class StyleReloadListener extends AsyncResourceReloader<LayoutStyleSheet>
 
 	@Override
 	public void apply(Identifier id, LayoutStyleSheet styleSheet) {
-		this.styleRegistry.registerStyleSheet(id,  styleSheet);
+		this.styleRegistry.register(id, styleSheet);
 	}
 }

@@ -1,4 +1,4 @@
-package blue.endless.enoki.util.resources;
+package blue.endless.enoki.resource;
 
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resource.Resource;

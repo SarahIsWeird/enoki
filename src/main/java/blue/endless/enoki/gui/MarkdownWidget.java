@@ -58,8 +58,8 @@ public class MarkdownWidget extends ContainerWidget {
 		Identifier defaultSheetId = Identifier.of("enoki:default");
 		Identifier testSheetId = Identifier.of("enoki:test");
 		
-		LayoutStyleSheet defaultSheet = EnokiClient.STYLES.getStyleSheet(defaultSheetId).orElse(LayoutStyleSheet.empty());
-		LayoutStyleSheet testSheet = EnokiClient.STYLES.getStyleSheet(testSheetId).orElse(LayoutStyleSheet.empty());
+		LayoutStyleSheet defaultSheet = EnokiClient.STYLES.getOrSupply(defaultSheetId, LayoutStyleSheet::empty);
+		LayoutStyleSheet testSheet = EnokiClient.STYLES.getOrSupply(testSheetId, LayoutStyleSheet::empty);
 		
 		testSheet.applyDefaults(defaultSheet);
 		this.layoutMap = testSheet.bake();
@@ -164,7 +164,6 @@ public class MarkdownWidget extends ContainerWidget {
 			
 			ClickableWidget childWidget;
 			if (child.type().isBlock()) {
-				//TODO: margins? Indents?
 				
 				int blockLeft = innerStyle.getOrDefault(StyleProperties.MARGIN_LEFT, 0);
 				int blockRight = innerStyle.getOrDefault(StyleProperties.MARGIN_RIGHT, 0);

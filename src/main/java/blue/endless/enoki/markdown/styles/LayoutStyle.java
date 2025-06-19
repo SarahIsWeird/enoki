@@ -158,6 +158,7 @@ public class LayoutStyle {
 	 */
 	public <T extends Comparable<T>> Optional<@NotNull T> get(@NotNull StyleProperty<T> property) {
 		// noinspection unchecked
+		@SuppressWarnings("unchecked")
 		T value = (T) this.properties.getOrDefault(property, null);
 		return Optional.ofNullable(value);
 	}
