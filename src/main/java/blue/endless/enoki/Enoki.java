@@ -3,6 +3,7 @@ package blue.endless.enoki;
 import blue.endless.enoki.gui.MarkdownWidget;
 import blue.endless.enoki.markdown.DocNode;
 import blue.endless.enoki.resource.ResourceDecoder;
+import blue.endless.enoki.util.NotNullByDefault;
 
 import com.sarahisweird.commonmark.ext.alerts.AlertExtension;
 import com.sarahisweird.commonmark.ext.image_attributes.ImageAttributesExtension;
@@ -16,6 +17,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+@NotNullByDefault
 public class Enoki {
 	private Enoki() {}
 	

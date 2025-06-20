@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.Nullable;
 
+import blue.endless.enoki.util.NotNullByDefault;
 import net.minecraft.util.Identifier;
 
 /**
@@ -15,6 +16,7 @@ import net.minecraft.util.Identifier;
  * 
  * @param <TResource> the type of objects that can be registered and looked up
  */
+@NotNullByDefault
 public class MiniRegistry<TResource> {
 	protected Map<Identifier, TResource> entries = new HashMap<>();
 	protected boolean frozen = false;

@@ -1,25 +1,30 @@
 package blue.endless.enoki.resource.impl;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
 import com.google.common.base.Predicates;
 
 import blue.endless.enoki.resource.LocalizedRegistry;
 import blue.endless.enoki.resource.ResourceDecoder;
+import blue.endless.enoki.util.NotNullByDefault;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
 
+@NotNullByDefault
 public class ReloaderBuilder<T> {
-	private Identifier id;
-	private String basePath;
+	private @Nullable Identifier id;
+	private @Nullable String basePath;
+	private @Nullable ResourceDecoder<T> decoder;
+	
 	private Predicate<Identifier> predicate = Predicates.alwaysTrue();
 	private boolean stripExtension = true;
 	private boolean freeze = true;
-	private ResourceDecoder<T> decoder;
 	private final Map<String, LocalizedRegistry<T>> registryMap;
 	private final Logger logger;
 	private final ResourceType resourceType;
@@ -60,7 +65,11 @@ public class ReloaderBuilder<T> {
 		return this;
 	}
 	
+	@SuppressWarnings("null") // the indicated nulls are checked
 	public void register() {
+		Objects.requireNonNull(id);
+		Objects.requireNonNull(basePath);
+		Objects.requireNonNull(decoder);
 		LocalizedResourceReloader<T> reloader = new LocalizedResourceReloader<>(
 				id, basePath, predicate, stripExtension, freeze, decoder, registryMap, logger
 				);

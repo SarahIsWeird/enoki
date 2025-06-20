@@ -7,6 +7,7 @@ import java.util.Optional;
 /**
  * A utility class containing parsing utilities.
  */
+@NotNullByDefault
 public class ParseUtils {
 	private ParseUtils() {}
 	

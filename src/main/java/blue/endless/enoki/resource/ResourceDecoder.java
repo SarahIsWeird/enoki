@@ -3,6 +3,7 @@ package blue.endless.enoki.resource;
 import java.io.IOException;
 import java.util.Optional;
 
+import blue.endless.enoki.util.NotNullByDefault;
 import net.minecraft.resource.Resource;
 import net.minecraft.util.Identifier;
 
@@ -11,6 +12,7 @@ import net.minecraft.util.Identifier;
  * @param <TResource> The kind of resource this function decodes
  */
 @FunctionalInterface
+@NotNullByDefault
 public interface ResourceDecoder<TResource> {
 	/**
 	 * Attempts to decode a resource. If the decoder discovers that the resource is well-formed but unsupported, Empty

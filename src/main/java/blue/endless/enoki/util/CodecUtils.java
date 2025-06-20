@@ -9,6 +9,7 @@ import net.minecraft.util.dynamic.Codecs;
  * 
  * @see #COLOR_CODEC
  */
+@NotNullByDefault
 public class CodecUtils {
 	private CodecUtils() {}
 

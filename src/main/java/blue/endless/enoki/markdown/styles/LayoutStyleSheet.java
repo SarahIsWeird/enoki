@@ -1,6 +1,8 @@
 package blue.endless.enoki.markdown.styles;
 
 import blue.endless.enoki.markdown.NodeType;
+import blue.endless.enoki.util.NotNullByDefault;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.Keyable;
 import org.jetbrains.annotations.NotNull;
@@ -11,15 +13,16 @@ import java.util.Optional;
 
 import static java.util.Objects.requireNonNull;
 
+@NotNullByDefault
 public class LayoutStyleSheet {
 	private static final Keyable KEYS = Keyable.forStrings(NodeCategory.KEYS::stream);
 	
-	public static final Codec<LayoutStyleSheet> CODEC =
+	public static final Codec<@NotNull LayoutStyleSheet> CODEC =
 		Codec.simpleMap(Codec.STRING.xmap(NodeCategory::getByName, NodeCategory::asString), LayoutStyle.CODEC, KEYS)
 			.xmap(LayoutStyleSheet::new, LayoutStyleSheet::getStyles)
 			.codec();
 
-	private final Map<NodeCategory, LayoutStyle> styles;
+	private final Map<@NotNull NodeCategory, @NotNull LayoutStyle> styles;
 	
 	public LayoutStyleSheet() {
 		this.styles = new EnumMap<>(NodeCategory.class);
@@ -41,6 +44,7 @@ public class LayoutStyleSheet {
 		return new LayoutStyleSheet();
 	}
 
+	@SuppressWarnings("null") // Map and Map.Entry issues
 	public LayoutStyleSheet copy() {
 		LayoutStyleSheet copy = new LayoutStyleSheet();
 
@@ -51,20 +55,21 @@ public class LayoutStyleSheet {
 		return copy;
 	}
 
-	private Map<NodeCategory, LayoutStyle> getStyles() {
+	private Map<@NotNull NodeCategory, @NotNull LayoutStyle> getStyles() {
 		return this.styles;
 	}
 
-	public Optional<LayoutStyle> get(@NotNull NodeCategory category) {
+	public Optional<@NotNull LayoutStyle> get(NodeCategory category) {
 		return Optional.ofNullable(this.styles.get(category));
 	}
 	
-	public void put(@NotNull NodeCategory category, LayoutStyle style) {
+	public void put(NodeCategory category, LayoutStyle style) {
 		this.styles.put(requireNonNull(category), requireNonNull(style));
 	}
 	
+	@SuppressWarnings("null") // Map and Map.Entry issues
 	public void applyDefaults(LayoutStyleSheet defaults) {
-		for (Map.Entry<NodeCategory, LayoutStyle> entry : defaults.styles.entrySet()) {
+		for (Map.Entry<@NotNull NodeCategory, @NotNull LayoutStyle> entry : defaults.styles.entrySet()) {
 			NodeCategory category = entry.getKey();
 			LayoutStyle style = entry.getValue();
 			
@@ -76,13 +81,14 @@ public class LayoutStyleSheet {
 		}
 	}
 	
-	public Map<NodeType, LayoutStyle> bake() {
+	public Map<@NotNull NodeType, @NotNull LayoutStyle> bake() {
 		this.fillInDefaultsFromParentCategories();
 		return this.buildNodeTypeMap();
 	}
 	
 	private void fillInDefaultsFromParentCategories() {
 		for (NodeCategory category : NodeCategory.values()) {
+			@SuppressWarnings("null") // Optional unwrap is ok
 			LayoutStyle style = this.get(category).orElse(LayoutStyle.empty());
 
 			for (NodeCategory hierarchyCategory : category.getHierarchy()) {
@@ -93,8 +99,9 @@ public class LayoutStyleSheet {
 		}
 	}
 	
-	private Map<NodeType, LayoutStyle> buildNodeTypeMap() {
-		Map<NodeType, LayoutStyle> bakedStyles = new EnumMap<>(NodeType.class);
+	@SuppressWarnings("null") // More map shenanigans
+	private Map<@NotNull NodeType, @NotNull LayoutStyle> buildNodeTypeMap() {
+		Map<@NotNull NodeType, @NotNull LayoutStyle> bakedStyles = new EnumMap<>(NodeType.class);
 		for (NodeType type : NodeType.values()) {
 			NodeCategory category = NodeCategory.getByNodeType(type).orElse(NodeCategory.DEFAULT);
 

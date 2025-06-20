@@ -1,6 +1,8 @@
 package blue.endless.enoki.markdown.styles;
 
 import blue.endless.enoki.markdown.NodeType;
+import blue.endless.enoki.util.NotNullByDefault;
+
 import com.mojang.serialization.Codec;
 import net.minecraft.util.StringIdentifiable;
 import org.jetbrains.annotations.NotNull;
@@ -12,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@NotNullByDefault
 public enum NodeCategory implements StringIdentifiable {
 	DEFAULT(null),
 	DOCUMENT(NodeType.DOCUMENT),
@@ -47,9 +50,10 @@ public enum NodeCategory implements StringIdentifiable {
 	UNDERLINE(NodeType.UNDERLINE),
 	;
 	
-	public static final Codec<NodeCategory> CODEC =
+	public static final Codec<@NotNull NodeCategory> CODEC =
 		StringIdentifiable.createCodec(NodeCategory::values, String::toUpperCase);
 	
+	@SuppressWarnings("null")
 	public static final List<String> KEYS = Arrays.stream(NodeCategory.values())
 		.map(Enum::name)
 		.map(String::toLowerCase)
@@ -75,7 +79,7 @@ public enum NodeCategory implements StringIdentifiable {
 		return NodeCategory.valueOf(name.toUpperCase());
 	}
 	
-	public static Optional<NodeCategory> getByNodeType(@NotNull NodeType type) {
+	public static Optional<NodeCategory> getByNodeType(NodeType type) {
 		for (NodeCategory category : NodeCategory.values()) {
 			if (type.equals(category.actualType)) {
 				return Optional.of(category);
@@ -90,7 +94,6 @@ public enum NodeCategory implements StringIdentifiable {
 		return actualType;
 	}
 	
-	@NotNull
 	public List<NodeCategory> getHierarchy() {
 		if (this == NodeCategory.DEFAULT) return new ArrayList<>();
 		

@@ -3,6 +3,7 @@ package blue.endless.enoki.markdown;
 import blue.endless.enoki.gui.widgets.link.LinkInfo;
 import blue.endless.enoki.markdown.attributes.DocImageAttributes;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
+import blue.endless.enoki.util.NotNullByDefault;
 import blue.endless.enoki.util.ParseUtils;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -29,6 +30,7 @@ import org.commonmark.node.Node;
 import org.commonmark.node.OrderedList;
 import org.commonmark.node.SoftLineBreak;
 import org.commonmark.node.Text;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,7 +42,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Environment(EnvType.CLIENT)
-public record DocNode(NodeType type, String text, Object attributes, List<DocNode> children) {
+@NotNullByDefault
+public record DocNode(NodeType type, String text, @Nullable Object attributes, List<DocNode> children) {
 	private static final Logger NORM_LOGGER = LogManager.getLogger("DocNode/Normalization");
 	
 	public DocNode(NodeType type, List<DocNode> children) {

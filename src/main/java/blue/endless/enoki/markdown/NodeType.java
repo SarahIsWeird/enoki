@@ -2,8 +2,9 @@ package blue.endless.enoki.markdown;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import blue.endless.enoki.util.NotNullByDefault;
 
 import org.commonmark.node.BlockQuote;
 import org.commonmark.node.BulletList;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Environment(EnvType.CLIENT)
+@NotNullByDefault
 public enum NodeType {
 	BLOCK_QUOTE("block_quote", BlockQuote.class, true),
 	BULLET_LIST("unordered_list", BulletList.class, true, List.of("list")),
@@ -67,16 +69,16 @@ public enum NodeType {
 	THEMATIC_BREAK(null, ThematicBreak.class, true),
 	;
 	
-	private final String name;
+	private final @Nullable String name;
 	private final Class<? extends Node> clazz;
 	private final boolean isBlock;
 	private final List<String> parentTypes;
 	
-	NodeType(String name, Class<? extends Node> clazz, boolean isBlock) {
+	NodeType(@Nullable String name, Class<? extends Node> clazz, boolean isBlock) {
 		this(name, clazz, isBlock, List.of());
 	}
 	
-	NodeType(@Nullable String name, Class<? extends Node> clazz, boolean isBlock, @NotNull List<String> parentTypes) {
+	NodeType(@Nullable String name, Class<? extends Node> clazz, boolean isBlock, List<String> parentTypes) {
 		this.name = name;
 		this.clazz = clazz;
 		this.isBlock = isBlock;

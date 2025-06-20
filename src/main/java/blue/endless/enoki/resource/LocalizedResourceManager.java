@@ -1,11 +1,14 @@
 package blue.endless.enoki.resource;
 
 import blue.endless.enoki.resource.impl.ReloaderBuilder;
+import blue.endless.enoki.util.NotNullByDefault;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.resource.ResourceType;
 import net.minecraft.util.Identifier;
+
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,6 +23,7 @@ import java.util.Optional;
  * @see #LocalizedResourceManager(Logger, Object) Creation
  * @see #get(Identifier, String) Resource resolution
  */
+@NotNullByDefault
 public class LocalizedResourceManager<T> {
 	/**
 	 * The fallback locale used by {@link #get(Identifier, String)}. Since the default language
@@ -29,7 +33,7 @@ public class LocalizedResourceManager<T> {
 	
 	protected final Map<String, LocalizedRegistry<T>> registries = new HashMap<>();
 	protected final Logger logger;
-	protected final T defaultValue;
+	protected final @Nullable T defaultValue;
 
 	/**
 	 * Creates a new manager with the default logger and {@code null} as the default value, i.e.,
@@ -60,7 +64,7 @@ public class LocalizedResourceManager<T> {
 	 * @param logger The logger to use
 	 * @param defaultValue The default value to use
 	 */
-	public LocalizedResourceManager(Logger logger, T defaultValue) {
+	public LocalizedResourceManager(Logger logger, @Nullable T defaultValue) {
 		this.logger = logger;
 		this.defaultValue = defaultValue;
 	}
@@ -78,17 +82,18 @@ public class LocalizedResourceManager<T> {
 	 * @param locale The desired locale
 	 * @return An {@link Optional} possibly containing a version of the resource
 	 */
+	@SuppressWarnings("null") // Optional.ofNullable is fine
 	public Optional<T> get(Identifier id, String locale) {
 		// Try to get the proper registry first
 		LocalizedRegistry<T> localRegistry = registries.get(locale);
 		if (localRegistry != null) {
-			T result = localRegistry.get(id);
+			@Nullable T result = localRegistry.get(id);
 			if (result != null) return Optional.of(result);
 		}
 		
 		LocalizedRegistry<T> fallbackRegistry = registries.get(FALLBACK_LOCALE);
 		if (fallbackRegistry != null) {
-			T result = fallbackRegistry.get(id);
+			@Nullable T result = fallbackRegistry.get(id);
 			if (result != null) return Optional.of(result);
 		}
 		

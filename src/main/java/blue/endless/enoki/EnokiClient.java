@@ -5,6 +5,7 @@ import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
 import blue.endless.enoki.resource.LocalizedResourceManager;
 import blue.endless.enoki.resource.MiniRegistry;
 import blue.endless.enoki.resource.impl.StyleReloadListener;
+import blue.endless.enoki.util.NotNullByDefault;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
@@ -15,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Environment(EnvType.CLIENT)
+@NotNullByDefault
 public class EnokiClient implements ClientModInitializer {
 	public static final Logger LOGGER = LoggerFactory.getLogger("Enoki");
 

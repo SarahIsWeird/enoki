@@ -4,6 +4,7 @@ import blue.endless.enoki.Enoki;
 import blue.endless.enoki.markdown.styles.LayoutStyleSheet;
 import blue.endless.enoki.resource.AsyncResourceReloader;
 import blue.endless.enoki.resource.MiniRegistry;
+import blue.endless.enoki.util.NotNullByDefault;
 
 import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
@@ -19,6 +20,7 @@ import java.io.IOException;
 import java.util.Optional;
 
 @ApiStatus.Internal
+@NotNullByDefault
 public class StyleReloadListener extends AsyncResourceReloader<LayoutStyleSheet> {
 	private static final String RESOURCE_PATH = Enoki.MOD_ID + "/styles";
 	private static final String PATH_PREFIX = RESOURCE_PATH + "/";

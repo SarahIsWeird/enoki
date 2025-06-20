@@ -9,15 +9,19 @@ import java.util.concurrent.Executor;
 import java.util.function.Predicate;
 
 import org.slf4j.Logger;
+import org.jetbrains.annotations.ApiStatus;
 
 import blue.endless.enoki.resource.LocalizedRegistry;
 import blue.endless.enoki.resource.LocalizedResourceManager;
 import blue.endless.enoki.resource.ResourceDecoder;
+import blue.endless.enoki.util.NotNullByDefault;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resource.Resource;
 import net.minecraft.resource.ResourceManager;
 import net.minecraft.util.Identifier;
 
+@ApiStatus.Internal
+@NotNullByDefault
 public record LocalizedResourceReloader<T>(
 		Identifier id,
 		String basePath,
@@ -34,6 +38,7 @@ public record LocalizedResourceReloader<T>(
 		return id;
 	}
 	
+	@SuppressWarnings("null") // Params from ResourceReloader aren't tagged NotNull
 	@Override
 	public CompletableFuture<Void> reload(Synchronizer synchronizer, ResourceManager manager, Executor prepareExecutor, Executor applyExecutor) {
 		CompletableFuture<List<LocalizedResource<T>>> future = CompletableFuture.supplyAsync(() -> prepareResources(manager), prepareExecutor);
