@@ -1,12 +1,14 @@
 package blue.endless.enoki.gui.widgets;
 
 import blue.endless.enoki.markdown.styles.LayoutStyle;
+import blue.endless.enoki.util.NotNullByDefault;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.narration.NarrationMessageBuilder;
 import net.minecraft.client.gui.widget.ClickableWidget;
 import net.minecraft.text.Text;
 
+@NotNullByDefault
 public abstract class AbstractMarkdownWidget extends ClickableWidget {
 	protected LayoutStyle style;
 	protected int backgroundColor = 0;

@@ -5,11 +5,13 @@ import org.jetbrains.annotations.Nullable;
 import blue.endless.enoki.markdown.styles.LayoutStyle;
 import blue.endless.enoki.markdown.styles.properties.StyleProperties;
 import blue.endless.enoki.text.WordWrap;
+import blue.endless.enoki.util.NotNullByDefault;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.text.Text;
 import net.minecraft.util.Colors;
 
+@NotNullByDefault
 public class TextSpanWidget extends AbstractMarkdownWidget implements Splittable {
 	protected final TextRenderer font;
 	protected final String text;
